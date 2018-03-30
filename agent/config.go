@@ -26,28 +26,3 @@ func readConfig(path string) (config Config, err error) {
 	err = json.Unmarshal(data, &config)
 	return config, err
 }
-
-// const maxWebsites = 1
-
-// func CSVtoWebsites(path string) (websites Websites, err error) {
-// 	file, err := os.Open(path)
-// 	if err != nil {
-// 		return nil, err
-// 	}
-
-// 	r := csv.NewReader(bufio.NewReader(file))
-// 	count := 0
-// 	for {
-// 		line, err := r.Read()
-// 		if err == io.EOF || count == maxWebsites {
-// 			break
-// 		}
-// 		if err != nil {
-// 			return nil, err
-// 		}
-// 		website := Website{Hostname: line[1]}
-// 		websites = append(websites, website)
-// 		count++
-// 	}
-// 	return
-// }
