@@ -8,6 +8,10 @@
     {
       "Frequency": 60,
       "Timespan": 3600
+    },
+    {
+      "Frequency": 10,
+      "Timespan": 1200
     }
   ]
 }

@@ -5,8 +5,6 @@ import (
 	"time"
 )
 
-const pollingInterval = 1
-
 type scheduler struct {
 	config   Config
 	data     chan types.AggregateByTimespan
