@@ -21,7 +21,6 @@ var Start = cli.Command{
 		websites := NewWebsites(config.URLs)
 		fmt.Println(websites)
 
-		// websites.InitAll()
 		websites.schedulePolls(config.PollInterval)
 		websites.ServeRPC(config.ListeningPort)
 
