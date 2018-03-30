@@ -14,10 +14,6 @@ var Start = cli.Command{
 	Usage: "Start the agent",
 	Action: func(c *cli.Context) error {
 		// Load config
-		// websites, err := CSVtoWebsites(path)
-		// if err != nil {
-		// 	return err
-		// }
 		config, err := readConfig(path)
 		if err != nil {
 			return err

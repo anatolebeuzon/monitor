@@ -64,34 +64,6 @@ func (website *Website) Poll() {
 	// fmt.Println(website.aggregateMetrics())
 }
 
-// // InitURL generates the full URL from a site hostname.
-// // Indeed, some websites do not have http -> https redirects.
-// // Some sites URL include www.domain.tld, others do not include the www
-// // In case there is no redirection, InitURL will attempt to reach URLs in
-// // the following order and retain the first URL that returns a non-error HTTP code:
-// // 		https:// + hostname
-// //		http:// + hostname
-// // 		https://www. + hostname
-// // 		http://www. + hostname
-// func (website *Website) InitURL(notify chan bool) {
-// 	prefixes := [4]string{"https://", "http://", "https://www.", "http://www."}
-
-// 	for _, prefix := range prefixes {
-// 		currentURL := prefix + website.Hostname + "/"
-// 		resp, err := http.Get(currentURL)
-// 		if err == nil && isValid(resp.StatusCode) {
-// 			// resp.Request.URL.String() may be different from currentURL
-// 			// because it is the last URL used (as http.Get() follows redirects)
-// 			website.URL = resp.Request.URL.String()
-// 			break
-// 		}
-// 	}
-
-// 	fmt.Println("Initialized", website.Hostname, "to", website.URL)
-// 	go website.schedulePolls()
-// 	notify <- true
-// }
-
 // isValid returns true if an HTTP return code is considered valid
 // (i.e. not an HTTP error code)
 func isValid(code int) bool {
