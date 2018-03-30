@@ -9,9 +9,9 @@ import (
 
 const rpcProtocol = "tcp"
 
-func (scheduler *scheduler) GetData(timespan int) {
+func (s *scheduler) GetData(timespan int) {
 
-	client, err := rpc.DialHTTP(rpcProtocol, scheduler.config.Server)
+	client, err := rpc.DialHTTP(rpcProtocol, s.config.Server)
 	if err != nil {
 		log.Fatal("Failed to connect to the daemon:", err)
 	}
@@ -27,7 +27,7 @@ func (scheduler *scheduler) GetData(timespan int) {
 		log.Fatal("RPC closing error:", err)
 	}
 
-	scheduler.data <- agg
+	s.data <- agg
 }
 
 func StopDaemon(rpcServer string) {

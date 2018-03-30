@@ -4,14 +4,14 @@ import (
 	"time"
 )
 
-func (website *Website) schedulePolls(pollInterval int) {
+func (w *Website) schedulePolls(pollInterval int) {
 	for range time.Tick(time.Duration(pollInterval) * time.Second) {
-		website.Poll()
+		w.Poll()
 	}
 }
 
-func (websites *Websites) schedulePolls(pollInterval int) {
-	for i := range *websites {
-		go (*websites)[i].schedulePolls(pollInterval)
+func (w *Websites) schedulePolls(pollInterval int) {
+	for i := range *w {
+		go (*w)[i].schedulePolls(pollInterval)
 	}
 }

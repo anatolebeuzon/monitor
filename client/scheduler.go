@@ -19,18 +19,19 @@ func newScheduler(config Config) scheduler {
 	}
 }
 
-func (scheduler *scheduler) init() *types.AggregateMapByURL {
+func (s *scheduler) init() *types.AggregateMapByURL {
 	// Create receiver
 	agg := types.NewAggregateMapByURL()
 
-	go scheduler.receive(&agg)
+	go s.receive(&agg)
 
 	// Launch check routines
-	for _, stat := range scheduler.config.Statistics {
+	for _, stat := range s.config.Statistics {
 		go func(stat Statistic) {
-			scheduler.GetData(stat.Timespan)
+			// TODO: this is not optimal, fix this
+			s.GetData(stat.Timespan)
 			for range time.Tick(time.Duration(stat.Frequency) * time.Second) {
-				scheduler.GetData(stat.Timespan)
+				s.GetData(stat.Timespan)
 			}
 		}(stat)
 	}
@@ -38,9 +39,9 @@ func (scheduler *scheduler) init() *types.AggregateMapByURL {
 	return &agg
 }
 
-func (scheduler *scheduler) receive(agg *types.AggregateMapByURL) {
+func (s *scheduler) receive(agg *types.AggregateMapByURL) {
 	for {
-		datum := <-scheduler.data
+		datum := <-s.data
 
 		// Check that timespan is registered
 		if _, ok := (*agg).TimespansLookup[datum.Timespan]; !ok {
@@ -56,6 +57,6 @@ func (scheduler *scheduler) receive(agg *types.AggregateMapByURL) {
 			}
 			(*agg).Map[item.URL][datum.Timespan] = item.Metrics
 		}
-		scheduler.updateUI <- true
+		s.updateUI <- true
 	}
 }

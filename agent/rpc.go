@@ -17,13 +17,13 @@ type Handler struct {
 }
 
 // Websites replies with all the websites (including metrics info).
-func (handler *Handler) Websites(args int, reply *Websites) error {
-	*reply = *handler.websites
+func (h *Handler) Websites(args int, reply *Websites) error {
+	*reply = *h.websites
 	return nil
 }
 
-func (handler *Handler) Metrics(timespan int, reply *types.AggregateByTimespan) error {
-	*reply = handler.websites.aggregateMetrics(timespan)
+func (h *Handler) Metrics(timespan int, reply *types.AggregateByTimespan) error {
+	*reply = h.websites.aggregateMetrics(timespan)
 	return nil
 }
 
@@ -33,17 +33,17 @@ func (handler *Handler) Metrics(timespan int, reply *types.AggregateByTimespan) 
 // for all connections to return to idle.
 // In particular, a "Handler.StopDaemon" call from a client will receive a response
 // before the server shuts down.
-func (handler *Handler) StopDaemon(_, _ *struct{}) error {
-	handler.done <- true
+func (h *Handler) StopDaemon(_, _ *struct{}) error {
+	h.done <- true
 	return nil
 }
 
 // ServeRPC starts an RPC server, and exposes the methods
 // of the handler type.
-func (websites *Websites) ServeRPC(port int) {
+func (w *Websites) ServeRPC(port int) {
 	done := make(chan bool)
 	rpcServer := rpc.NewServer()
-	rpcServer.Register(&Handler{websites: websites, done: done})
+	rpcServer.Register(&Handler{websites: w, done: done})
 	rpcServer.HandleHTTP("/_goRPC_", "/debug/rpc") // use defaults used by HandleHTTP
 
 	// TODO: fix duplicate server info with client

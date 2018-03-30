@@ -2,19 +2,19 @@ package agent
 
 // PollAll concurrently polls all websites once.
 // It blocks until all websites have been polled.
-func (websites *Websites) PollAll() {
+func (w *Websites) PollAll() {
 	notify := make(chan bool)
-	for i := range *websites {
-		go (*websites)[i].Poll()
+	for i := range *w {
+		go (*w)[i].Poll()
 	}
-	for i := 0; i < len(*websites); i++ {
+	for i := 0; i < len(*w); i++ {
 		<-notify
 	}
 }
 
-func NewWebsites(URLs []string) (websites Websites) {
+func NewWebsites(URLs []string) (w Websites) {
 	for _, url := range URLs {
-		websites = append(websites, Website{URL: url})
+		w = append(w, Website{URL: url})
 	}
 	return
 }

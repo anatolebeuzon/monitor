@@ -11,8 +11,8 @@ import (
 const retainedMetrics = 10
 
 // Poll makes a GET request to a website, and measures response times and response codes.
-func (website *Website) Poll() {
-	req, err := http.NewRequest("GET", website.URL, nil)
+func (w *Website) Poll() {
+	req, err := http.NewRequest("GET", w.URL, nil)
 	if err != nil {
 		fmt.Println(err)
 		return
@@ -55,13 +55,13 @@ func (website *Website) Poll() {
 
 	// Only retain the last metrics
 	itemsToDelete := 0
-	if len(website.Metrics) >= retainedMetrics {
-		itemsToDelete = len(website.Metrics) + 1 - retainedMetrics
+	if len(w.Metrics) >= retainedMetrics {
+		itemsToDelete = len(w.Metrics) + 1 - retainedMetrics
 	}
-	website.Metrics = append(website.Metrics[itemsToDelete:], metric)
+	w.Metrics = append(w.Metrics[itemsToDelete:], metric)
 
-	// fmt.Println(website)
-	// fmt.Println(website.aggregateMetrics())
+	// fmt.Println(w)
+	// fmt.Println(w.aggregateMetrics())
 }
 
 // isValid returns true if an HTTP return code is considered valid

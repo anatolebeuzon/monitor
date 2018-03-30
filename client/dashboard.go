@@ -67,8 +67,6 @@ func (d *Dashboard) Show() error {
 		ui.NewRow(ui.NewCol(12, 0, &d.page.Metrics)),
 		ui.NewRow(ui.NewCol(12, 0, &d.page.Alerts)),
 	)
-
-	// calculate layout
 	ui.Body.Align()
 
 	for {

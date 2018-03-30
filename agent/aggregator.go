@@ -5,38 +5,38 @@ import (
 	"time"
 )
 
-func (websites *Websites) aggregateMetrics(timespan int) (aggMet types.AggregateByTimespan) {
+func (w *Websites) aggregateMetrics(timespan int) (aggMet types.AggregateByTimespan) {
 	aggMet.Timespan = timespan
-	for _, website := range *websites {
+	for _, website := range *w {
 		aggMet.Agg = append(aggMet.Agg, website.aggregateMetrics())
 	}
 	return
 }
 
-func (website *Website) aggregateMetrics() types.AggregateItem {
-	TTFBs := website.TTFBs()
+func (w *Website) aggregateMetrics() types.AggregateItem {
+	TTFBs := w.TTFBs()
 	aggMet := types.AggregateItem{
-		URL: website.URL,
+		URL: w.URL,
 		Metrics: types.AggregatedMetric{
 			MinTTFB:          minDuration(TTFBs),
 			MaxTTFB:          maxDuration(TTFBs),
 			AvgTTFB:          avgDuration(TTFBs),
-			StatusCodeCounts: website.countCodes(),
+			StatusCodeCounts: w.countCodes(),
 		},
 	}
 	return aggMet
 }
 
-func (website *Website) TTFBs() (durations []time.Duration) {
-	for _, metric := range website.Metrics {
+func (w *Website) TTFBs() (durations []time.Duration) {
+	for _, metric := range w.Metrics {
 		durations = append(durations, metric.TTFB)
 	}
 	return
 }
 
-func (website *Website) countCodes() map[int]int {
+func (w *Website) countCodes() map[int]int {
 	codesCount := make(map[int]int)
-	for _, metric := range website.Metrics {
+	for _, metric := range w.Metrics {
 		codesCount[metric.StatusCode]++
 	}
 	// fmt.Println(codesCount)
