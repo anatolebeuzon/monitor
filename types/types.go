@@ -16,7 +16,21 @@ type AggregateItem struct {
 }
 
 // AggregateMetric maps from an aggregation timespan to the corresponding
-type AggregateMapByURL map[string]AggregateMapByTimespan
+type AggregateMapByURL struct {
+	TimespansOrder  []int
+	TimespansLookup map[int]bool
+	URLs            []string
+	Map             map[string]AggregateMapByTimespan
+}
+
+func NewAggregateMapByURL() AggregateMapByURL {
+	return AggregateMapByURL{
+		TimespansOrder:  []int{},
+		TimespansLookup: make(map[int]bool),
+		URLs:            []string{},
+		Map:             make(map[string]AggregateMapByTimespan),
+	}
+}
 
 type AggregateMapByTimespan map[int]AggregatedMetric
 
@@ -32,10 +46,10 @@ func (metric AggregatedMetric) String() string {
 	return "Average TTFB: " + metric.AvgTTFB.String() + "\nMin TTFB: " + metric.MinTTFB.String() + "\nMax TTFB: " + metric.MaxTTFB.String()
 }
 
-func (metrics AggregateMapByTimespan) String() (str string) {
-	for timespan, metric := range metrics {
+func (agg AggregateMapByURL) String(url string) (str string) {
+	for _, timespan := range agg.TimespansOrder {
 		str += "Aggregate over " + strconv.Itoa(timespan) + " seconds :\n"
-		str += metric.String()
+		str += agg.Map[url][timespan].String()
 		str += "\n\n"
 	}
 	return

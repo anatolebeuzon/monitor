@@ -23,7 +23,7 @@ func newScheduler(config Config) scheduler {
 
 func (scheduler *scheduler) init() *types.AggregateMapByURL {
 	// Create receiver
-	agg := make(types.AggregateMapByURL)
+	agg := types.NewAggregateMapByURL()
 
 	go scheduler.receive(&agg)
 
@@ -43,12 +43,20 @@ func (scheduler *scheduler) init() *types.AggregateMapByURL {
 func (scheduler *scheduler) receive(agg *types.AggregateMapByURL) {
 	for {
 		datum := <-scheduler.data
+
+		// Check that timespan is registered
+		if _, ok := (*agg).TimespansLookup[datum.Timespan]; !ok {
+			(*agg).TimespansLookup[datum.Timespan] = true
+			(*agg).TimespansOrder = append((*agg).TimespansOrder, datum.Timespan)
+		}
+
 		for _, item := range datum.Agg {
-			_, ok := (*agg)[item.URL]
-			if !ok {
-				(*agg)[item.URL] = make(types.AggregateMapByTimespan)
+			// Check that URL is registered
+			if _, ok := (*agg).Map[item.URL]; !ok {
+				(*agg).Map[item.URL] = make(types.AggregateMapByTimespan)
+				(*agg).URLs = append((*agg).URLs, item.URL)
 			}
-			(*agg)[item.URL][datum.Timespan] = item.Metrics
+			(*agg).Map[item.URL][datum.Timespan] = item.Metrics
 		}
 		scheduler.updateUI <- true
 	}

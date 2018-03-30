@@ -18,7 +18,6 @@ var Show = cli.Command{
 
 		s := newScheduler(config)
 		agg := s.init()
-		<-s.updateUI
 		d := NewDashboard(agg, s.updateUI)
 		d.Show()
 		return nil
