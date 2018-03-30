@@ -11,6 +11,7 @@ var Show = cli.Command{
 	Name:  "show",
 	Usage: "Show the dashboard",
 	Action: func(c *cli.Context) error {
+		// Load config
 		var agg types.AggregateMetrics
 		receivedData := make(chan bool)
 		go schedulePolls(&agg, receivedData)
