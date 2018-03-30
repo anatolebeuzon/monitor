@@ -6,7 +6,6 @@ import (
 	"github.com/urfave/cli"
 )
 
-// const path = "/Users/Anatole/Dev/go/src/go-project-3/top-1m.csv"
 const path = "agent/config.json"
 
 var Start = cli.Command{
