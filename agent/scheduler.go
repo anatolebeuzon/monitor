@@ -4,8 +4,6 @@ import (
 	"time"
 )
 
-const pollingInterval = 2 // in seconds
-
 func (website *Website) schedulePolls(pollInterval int) {
 	for range time.Tick(time.Duration(pollInterval) * time.Second) {
 		website.Poll()
