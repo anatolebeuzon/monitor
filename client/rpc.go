@@ -7,30 +7,30 @@ import (
 	"net/rpc"
 )
 
-const (
-	rpcProtocol = "tcp"
-	rpcServer   = "127.0.0.1:1234"
-)
+const rpcProtocol = "tcp"
 
-func GetData(agg *types.AggregateMetrics, receivedData chan bool) {
-	client, err := rpc.DialHTTP(rpcProtocol, rpcServer)
+func (scheduler *scheduler) GetData(timespan int) {
+
+	client, err := rpc.DialHTTP(rpcProtocol, scheduler.config.Server)
 	if err != nil {
 		log.Fatal("Failed to connect to the daemon:", err)
 	}
-	args := 4
-	err = client.Call("Handler.Metrics", &args, agg)
+
+	var agg types.AggregateByTimespan
+	err = client.Call("Handler.Metrics", &timespan, &agg)
 	if err != nil {
 		log.Fatal("RPC error:", err)
 	}
-	receivedData <- true
+
 	err = client.Close()
 	if err != nil {
 		log.Fatal("RPC closing error:", err)
 	}
-	// fmt.Printf("Websites: %v", reply)
+
+	scheduler.data <- agg
 }
 
-func StopDaemon() {
+func StopDaemon(rpcServer string) {
 	client, err := rpc.DialHTTP(rpcProtocol, rpcServer)
 	if err != nil {
 		log.Fatal("dialing:", err)

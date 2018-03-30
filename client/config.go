@@ -7,10 +7,13 @@ import (
 )
 
 type Config struct {
-	Statistics []struct {
-		Frequency int
-		Timespan  int
-	}
+	Server     string
+	Statistics []Statistic
+}
+
+type Statistic struct {
+	Frequency int
+	Timespan  int
 }
 
 func readConfig(path string) (config Config, err error) {

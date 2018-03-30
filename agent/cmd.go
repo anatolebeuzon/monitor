@@ -22,7 +22,6 @@ var Start = cli.Command{
 
 		websites.schedulePolls(config.PollInterval)
 		websites.ServeRPC(config.ListeningPort)
-
 		return nil
 	},
 }

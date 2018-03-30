@@ -60,7 +60,7 @@ func (website *Website) Poll() {
 	}
 	website.Metrics = append(website.Metrics[itemsToDelete:], metric)
 
-	fmt.Println(website)
+	// fmt.Println(website)
 	// fmt.Println(website.aggregateMetrics())
 }
 

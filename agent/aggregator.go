@@ -1,26 +1,30 @@
 package agent
 
 import (
-	"fmt"
 	"go-project-3/types"
 	"time"
 )
 
-func (websites *Websites) aggregateMetrics() (aggMet types.AggregateMetrics) {
+func (websites *Websites) aggregateMetrics(timespan int) (aggMet types.AggregateByTimespan) {
+	aggMet.Timespan = timespan
 	for _, website := range *websites {
-		aggMet = append(aggMet, website.aggregateMetrics())
+		aggMet.Agg = append(aggMet.Agg, website.aggregateMetrics())
 	}
 	return
 }
 
-func (website *Website) aggregateMetrics() (aggMet types.AggregateMetric) {
-	aggMet.URL = website.URL
+func (website *Website) aggregateMetrics() types.AggregateItem {
 	TTFBs := website.TTFBs()
-	aggMet.AvgTTFB = avgDuration(TTFBs)
-	aggMet.MinTTFB = minDuration(TTFBs)
-	aggMet.MaxTTFB = maxDuration(TTFBs)
-	aggMet.StatusCodeCounts = website.countCodes()
-	return
+	aggMet := types.AggregateItem{
+		URL: website.URL,
+		Metrics: types.AggregatedMetric{
+			MinTTFB:          minDuration(TTFBs),
+			MaxTTFB:          maxDuration(TTFBs),
+			AvgTTFB:          avgDuration(TTFBs),
+			StatusCodeCounts: website.countCodes(),
+		},
+	}
+	return aggMet
 }
 
 func (website *Website) TTFBs() (durations []time.Duration) {
@@ -35,6 +39,6 @@ func (website *Website) countCodes() map[int]int {
 	for _, metric := range website.Metrics {
 		codesCount[metric.StatusCode]++
 	}
-	fmt.Println(codesCount)
+	// fmt.Println(codesCount)
 	return codesCount
 }

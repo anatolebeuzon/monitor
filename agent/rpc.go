@@ -3,6 +3,7 @@ package agent
 import (
 	"context"
 	"go-project-3/types"
+	"log"
 	"net/http"
 	"net/rpc"
 	"strconv"
@@ -21,8 +22,8 @@ func (handler *Handler) Websites(args int, reply *Websites) error {
 	return nil
 }
 
-func (handler *Handler) Metrics(args int, reply *types.AggregateMetrics) error {
-	*reply = handler.websites.aggregateMetrics()
+func (handler *Handler) Metrics(timespan int, reply *types.AggregateByTimespan) error {
+	*reply = handler.websites.aggregateMetrics(timespan)
 	return nil
 }
 
@@ -57,5 +58,8 @@ func (websites *Websites) ServeRPC(port int) {
 		httpServer.Shutdown(context.Background())
 	}()
 
-	httpServer.ListenAndServe()
+	err := httpServer.ListenAndServe()
+	if err != nil {
+		log.Fatal(err)
+	}
 }

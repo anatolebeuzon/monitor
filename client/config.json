@@ -1,7 +1,8 @@
 {
+  "Server": "127.0.0.1:1234",
   "Statistics": [
     {
-      "Frequency": 10,
+      "Frequency": 2,
       "Timespan": 600
     },
     {
