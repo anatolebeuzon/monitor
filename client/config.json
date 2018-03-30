@@ -1,0 +1,12 @@
+{
+  "Statistics": [
+    {
+      "Frequency": 10,
+      "Timespan": 600
+    },
+    {
+      "Frequency": 60,
+      "Timespan": 3600
+    }
+  ]
+}
