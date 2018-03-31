@@ -22,7 +22,7 @@ func (h *Handler) Websites(args int, reply *Websites) error {
 	return nil
 }
 
-func (h *Handler) Metrics(timespan int, reply *types.Package) error {
+func (h *Handler) Metrics(timespan int, reply *types.Payload) error {
 	*reply = h.websites.aggregateMetrics(timespan)
 	return nil
 }

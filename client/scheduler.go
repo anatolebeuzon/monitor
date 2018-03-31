@@ -7,14 +7,14 @@ import (
 
 type scheduler struct {
 	config   Config
-	received chan types.Package
+	received chan types.Payload
 	updateUI chan bool
 }
 
 func newScheduler(c Config) *scheduler {
 	return &scheduler{
 		config:   c,
-		received: make(chan types.Package),
+		received: make(chan types.Payload),
 		updateUI: make(chan bool),
 	}
 }

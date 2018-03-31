@@ -16,7 +16,7 @@ func (s *scheduler) GetData(timespan int) {
 		log.Fatal("Failed to connect to the daemon:", err)
 	}
 
-	var Package types.Package
+	var Package types.Payload
 	err = client.Call("Handler.Metrics", &timespan, &Package)
 	if err != nil {
 		log.Fatal("RPC error:", err)

@@ -4,7 +4,8 @@ import (
 	"time"
 )
 
-type Package struct {
+// Package represents what is sent from the daemon to the client
+type Payload struct {
 	Timespan int
 	Websites []WebsiteMetric
 }

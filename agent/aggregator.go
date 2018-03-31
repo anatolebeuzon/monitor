@@ -5,10 +5,10 @@ import (
 	"time"
 )
 
-func (w *Websites) aggregateMetrics(timespan int) (Package types.Package) {
-	Package.Timespan = timespan
+func (w *Websites) aggregateMetrics(timespan int) (p types.Payload) {
+	p.Timespan = timespan
 	for _, website := range *w {
-		Package.Websites = append(Package.Websites, website.aggregateMetrics())
+		p.Websites = append(p.Websites, website.aggregateMetrics())
 	}
 	return
 }

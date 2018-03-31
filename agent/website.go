@@ -8,6 +8,21 @@ import (
 	"time"
 )
 
+type Website struct {
+	// Hostname string
+	URL          string
+	TraceResults []TraceResult
+}
+
+type TraceResult struct {
+	Date        time.Time
+	DNStime     time.Duration
+	TLStime     time.Duration
+	ConnectTime time.Duration
+	TTFB        time.Duration
+	StatusCode  int
+}
+
 const retainedResults = 10
 
 // Poll makes a GET request to a website, and measures response times and response codes.
@@ -62,6 +77,12 @@ func (w *Website) Poll() {
 
 	// fmt.Println(w)
 	// fmt.Println(w.aggregateMetrics())
+}
+
+func (w *Website) schedulePolls(pollInterval int) {
+	for range time.Tick(time.Duration(pollInterval) * time.Second) {
+		w.Poll()
+	}
 }
 
 // isValid returns true if an HTTP return code is considered valid
