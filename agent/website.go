@@ -8,7 +8,7 @@ import (
 	"time"
 )
 
-const retainedMetrics = 10
+const retainedResults = 10
 
 // Poll makes a GET request to a website, and measures response times and response codes.
 func (w *Website) Poll() {
@@ -20,26 +20,26 @@ func (w *Website) Poll() {
 
 	var start, connect, dns, tlsHandshake time.Time
 
-	var metric Metric
+	var res TraceResult
 
 	trace := &httptrace.ClientTrace{
 		DNSStart: func(_ httptrace.DNSStartInfo) { dns = time.Now() },
 		DNSDone: func(_ httptrace.DNSDoneInfo) {
-			metric.DNStime = time.Since(dns)
+			res.DNStime = time.Since(dns)
 		},
 
 		TLSHandshakeStart: func() { tlsHandshake = time.Now() },
 		TLSHandshakeDone: func(cs tls.ConnectionState, err error) {
-			metric.TLStime = time.Since(tlsHandshake)
+			res.TLStime = time.Since(tlsHandshake)
 		},
 
 		ConnectStart: func(network, addr string) { connect = time.Now() },
 		ConnectDone: func(network, addr string, err error) {
-			metric.ConnectTime = time.Since(connect)
+			res.ConnectTime = time.Since(connect)
 		},
 
 		GotFirstResponseByte: func() {
-			metric.TTFB = time.Since(start)
+			res.TTFB = time.Since(start)
 		},
 	}
 
@@ -50,15 +50,15 @@ func (w *Website) Poll() {
 		fmt.Println(err)
 		return
 	}
-	metric.StatusCode = resp.StatusCode
-	metric.Date = time.Now()
+	res.StatusCode = resp.StatusCode
+	res.Date = time.Now()
 
-	// Only retain the last metrics
+	// Only retain the last trace results
 	itemsToDelete := 0
-	if len(w.Metrics) >= retainedMetrics {
-		itemsToDelete = len(w.Metrics) + 1 - retainedMetrics
+	if len(w.TraceResults) >= retainedResults {
+		itemsToDelete = len(w.TraceResults) + 1 - retainedResults
 	}
-	w.Metrics = append(w.Metrics[itemsToDelete:], metric)
+	w.TraceResults = append(w.TraceResults[itemsToDelete:], res)
 
 	// fmt.Println(w)
 	// fmt.Println(w.aggregateMetrics())

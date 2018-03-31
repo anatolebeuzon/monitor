@@ -16,8 +16,8 @@ func (s *scheduler) GetData(timespan int) {
 		log.Fatal("Failed to connect to the daemon:", err)
 	}
 
-	var agg types.AggregateByTimespan
-	err = client.Call("Handler.Metrics", &timespan, &agg)
+	var Package types.Package
+	err = client.Call("Handler.Metrics", &timespan, &Package)
 	if err != nil {
 		log.Fatal("RPC error:", err)
 	}
@@ -27,7 +27,7 @@ func (s *scheduler) GetData(timespan int) {
 		log.Fatal("RPC closing error:", err)
 	}
 
-	s.data <- agg
+	s.received <- Package
 }
 
 func StopDaemon(rpcServer string) {

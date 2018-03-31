@@ -7,28 +7,27 @@ import (
 
 type scheduler struct {
 	config   Config
-	data     chan types.AggregateByTimespan
+	received chan types.Package
 	updateUI chan bool
 }
 
-func newScheduler(config Config) scheduler {
-	return scheduler{
-		config:   config,
-		data:     make(chan types.AggregateByTimespan),
+func newScheduler(c Config) *scheduler {
+	return &scheduler{
+		config:   c,
+		received: make(chan types.Package),
 		updateUI: make(chan bool),
 	}
 }
 
-func (s *scheduler) init() *types.AggregateMapByURL {
+func (s *scheduler) init() *Store {
 	// Create receiver
-	agg := types.NewAggregateMapByURL()
+	store := NewStore()
 
-	go s.receive(&agg)
+	go s.receive(store)
 
 	// Launch check routines
 	for _, stat := range s.config.Statistics {
 		go func(stat Statistic) {
-			// TODO: this is not optimal, fix this
 			s.GetData(stat.Timespan)
 			for range time.Tick(time.Duration(stat.Frequency) * time.Second) {
 				s.GetData(stat.Timespan)
@@ -36,26 +35,26 @@ func (s *scheduler) init() *types.AggregateMapByURL {
 		}(stat)
 	}
 
-	return &agg
+	return store
 }
 
-func (s *scheduler) receive(agg *types.AggregateMapByURL) {
+func (s *scheduler) receive(store *Store) {
 	for {
-		datum := <-s.data
+		Package := <-s.received
 
 		// Check that timespan is registered
-		if _, ok := (*agg).TimespansLookup[datum.Timespan]; !ok {
-			(*agg).TimespansLookup[datum.Timespan] = true
-			(*agg).TimespansOrder = append((*agg).TimespansOrder, datum.Timespan)
+		if _, ok := store.Timespans.Lookup[Package.Timespan]; !ok {
+			store.Timespans.Lookup[Package.Timespan] = true
+			store.Timespans.Order = append(store.Timespans.Order, Package.Timespan)
 		}
 
-		for _, item := range datum.Agg {
+		for _, w := range Package.Websites {
 			// Check that URL is registered
-			if _, ok := (*agg).Map[item.URL]; !ok {
-				(*agg).Map[item.URL] = make(types.AggregateMapByTimespan)
-				(*agg).URLs = append((*agg).URLs, item.URL)
+			if _, ok := store.Metrics[w.URL]; !ok {
+				store.Metrics[w.URL] = make(map[int]types.Metric)
+				store.URLs = append(store.URLs, w.URL)
 			}
-			(*agg).Map[item.URL][datum.Timespan] = item.Metrics
+			store.Metrics[w.URL][Package.Timespan] = w.Metric
 		}
 		s.updateUI <- true
 	}

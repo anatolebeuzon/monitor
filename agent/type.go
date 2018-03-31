@@ -9,13 +9,13 @@ type Poller interface {
 
 type Website struct {
 	// Hostname string
-	URL     string
-	Metrics []Metric
+	URL          string
+	TraceResults []TraceResult
 }
 
 type Websites []Website
 
-type Metric struct {
+type TraceResult struct {
 	Date        time.Time
 	DNStime     time.Duration
 	TLStime     time.Duration

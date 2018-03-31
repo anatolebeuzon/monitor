@@ -1,13 +1,11 @@
 package client
 
 import (
-	"go-project-3/types"
-
 	ui "github.com/gizak/termui"
 )
 
 type Dashboard struct {
-	agg        *types.AggregateMapByURL
+	store      *Store
 	currentIdx int
 	page       DashboardPage
 	updateUI   chan bool
@@ -38,9 +36,9 @@ func NewDashboardPage() DashboardPage {
 	}
 }
 
-func NewDashboard(agg *types.AggregateMapByURL, updateUI chan bool) (d Dashboard) {
+func NewDashboard(s *Store, updateUI chan bool) (d Dashboard) {
 	return Dashboard{
-		agg:        agg,
+		store:      s,
 		currentIdx: 0,
 		page:       NewDashboardPage(),
 		updateUI:   updateUI,
@@ -81,15 +79,15 @@ func (d *Dashboard) Show() error {
 
 func (d *Dashboard) Render() {
 	// Refresh the DashboardPage object currently used
-	d.page.Refresh(d.currentIdx, *d.agg)
+	d.page.Refresh(d.currentIdx, *d.store)
 	// Rerender UI
 	ui.Render(ui.Body)
 }
 
-func (p *DashboardPage) Refresh(currentIdx int, agg types.AggregateMapByURL) {
-	url := agg.URLs[currentIdx]
+func (p *DashboardPage) Refresh(currentIdx int, s Store) {
+	url := s.URLs[currentIdx]
 	p.Title.Text = url
-	p.Metrics.Text = agg.String(url)
+	p.Metrics.Text = s.String(url)
 	p.Alerts.Text = "" // TODO
 }
 
@@ -99,7 +97,7 @@ func (d *Dashboard) RegisterEventHandlers() {
 	})
 
 	ui.Handle("/sys/kbd/<right>", func(ui.Event) {
-		if d.currentIdx < len((*d.agg).URLs)-1 {
+		if d.currentIdx < len(d.store.URLs)-1 {
 			d.currentIdx++
 			d.updateUI <- true
 		}

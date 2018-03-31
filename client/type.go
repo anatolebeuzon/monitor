@@ -1,20 +1,39 @@
 package client
 
-import "time"
+import (
+	"go-project-3/types"
+	"strconv"
+)
 
-type Website struct {
-	Hostname string
-	URL      string
-	Metrics  []Metric
+// Store stores metrics data
+type Store struct {
+	Timespans Timespans
+	URLs      []string
+	// Metrics[url][timespan] will give the aggregatedMetric for the selected URL and timespan
+	Metrics map[string]map[int]types.Metric
 }
 
-type Websites []Website
+type Timespans struct {
+	Order  []int
+	Lookup map[int]bool
+}
 
-type Metric struct {
-	Date        time.Time
-	DNStime     time.Duration
-	TLStime     time.Duration
-	ConnectTime time.Duration
-	TTFB        time.Duration
-	StatusCode  int
+func NewStore() *Store {
+	return &Store{
+		Timespans: Timespans{
+			Order:  []int{},
+			Lookup: make(map[int]bool),
+		},
+		URLs:    []string{},
+		Metrics: make(map[string]map[int]types.Metric),
+	}
+}
+
+func (s Store) String(url string) (str string) {
+	for _, timespan := range s.Timespans.Order {
+		str += "Aggregate over " + strconv.Itoa(timespan) + " seconds :\n"
+		str += s.Metrics[url][timespan].String()
+		str += "\n\n"
+	}
+	return
 }
