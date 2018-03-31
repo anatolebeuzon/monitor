@@ -23,7 +23,7 @@ func (h *Handler) Websites(args int, reply *Websites) error {
 }
 
 func (h *Handler) Metrics(timespan int, reply *types.Payload) error {
-	*reply = h.websites.aggregateMetrics(timespan)
+	*reply = h.websites.aggregateResults(timespan)
 	return nil
 }
 
