@@ -11,22 +11,11 @@ import (
 type Website struct {
 	// Hostname string
 	URL          string
-	TraceResults []TraceResult
+	TraceResults TraceResults
 }
-
-type TraceResult struct {
-	Date        time.Time
-	DNStime     time.Duration
-	TLStime     time.Duration
-	ConnectTime time.Duration
-	TTFB        time.Duration
-	StatusCode  int
-}
-
-const retainedResults = 10
 
 // Poll makes a GET request to a website, and measures response times and response codes.
-func (w *Website) Poll() {
+func (w *Website) Poll(retainedResults int) {
 	req, err := http.NewRequest("GET", w.URL, nil)
 	if err != nil {
 		fmt.Println(err)
@@ -69,6 +58,7 @@ func (w *Website) Poll() {
 	res.Date = time.Now()
 
 	// Only retain the last trace results
+	// TODO: improve this
 	itemsToDelete := 0
 	if len(w.TraceResults) >= retainedResults {
 		itemsToDelete = len(w.TraceResults) + 1 - retainedResults
@@ -79,9 +69,9 @@ func (w *Website) Poll() {
 	// fmt.Println(w.aggregateMetrics())
 }
 
-func (w *Website) schedulePolls(pollInterval int) {
-	for range time.Tick(time.Duration(pollInterval) * time.Second) {
-		w.Poll()
+func (w *Website) schedulePolls(p PollConfig) {
+	for range time.Tick(time.Duration(p.Interval) * time.Second) {
+		w.Poll(p.RetainedResults)
 	}
 }
 

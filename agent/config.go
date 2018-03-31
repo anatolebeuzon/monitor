@@ -8,8 +8,13 @@ import (
 
 type Config struct {
 	ListeningPort int
-	PollInterval  int
+	Poll          PollConfig
 	URLs          []string
+}
+
+type PollConfig struct {
+	Interval        int
+	RetainedResults int
 }
 
 func readConfig(path string) (config Config, err error) {

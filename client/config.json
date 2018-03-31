@@ -3,15 +3,11 @@
   "Statistics": [
     {
       "Frequency": 2,
-      "Timespan": 600
-    },
-    {
-      "Frequency": 60,
-      "Timespan": 3600
+      "Timespan": 20
     },
     {
       "Frequency": 10,
-      "Timespan": 1200
+      "Timespan": 40
     }
   ]
 }

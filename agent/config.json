@@ -1,5 +1,8 @@
 {
   "ListeningPort": 1234,
-  "PollInterval": 2,
+  "Poll": {
+    "Interval": 2,
+    "RetainedResults": 1000000
+  },
   "URLs": ["https://youtube.com", "https://github.com"]
 }

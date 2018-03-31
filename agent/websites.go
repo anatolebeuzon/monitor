@@ -9,8 +9,8 @@ func NewWebsites(URLs []string) (w Websites) {
 	return
 }
 
-func (w Websites) schedulePolls(pollInterval int) {
+func (w Websites) schedulePolls(p PollConfig) {
 	for i := range w {
-		go w[i].schedulePolls(pollInterval)
+		go w[i].schedulePolls(p)
 	}
 }

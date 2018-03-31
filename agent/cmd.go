@@ -20,7 +20,7 @@ var Start = cli.Command{
 		websites := NewWebsites(config.URLs)
 		fmt.Println(websites)
 
-		websites.schedulePolls(config.PollInterval)
+		websites.schedulePolls(config.Poll)
 		websites.ServeRPC(config.ListeningPort)
 		return nil
 	},
