@@ -25,6 +25,7 @@ func (w *Website) Poll(retainedResults int) {
 	var start, connect, dns, tlsHandshake time.Time
 
 	var tr TraceResult
+	tr.Date = time.Now()
 
 	trace := &httptrace.ClientTrace{
 		DNSStart: func(_ httptrace.DNSStartInfo) { dns = time.Now() },
@@ -51,11 +52,10 @@ func (w *Website) Poll(retainedResults int) {
 	start = time.Now()
 	resp, err := http.DefaultTransport.RoundTrip(req)
 	if err != nil {
-		fmt.Println(err)
+		tr.Error = err
 		return
 	}
 	tr.StatusCode = resp.StatusCode
-	tr.Date = time.Now()
 
 	// Only retain the last trace results
 	// TODO: improve this
@@ -73,16 +73,4 @@ func (w *Website) schedulePolls(p PollConfig) {
 	for range time.Tick(time.Duration(p.Interval) * time.Second) {
 		w.Poll(p.RetainedResults)
 	}
-}
-
-// isValid returns true if an HTTP return code is considered valid
-// (i.e. not an HTTP error code)
-func isValid(code int) bool {
-	validCodes := []int{200, 301, 302}
-	for _, validCode := range validCodes {
-		if code == validCode {
-			return true
-		}
-	}
-	return false
 }
