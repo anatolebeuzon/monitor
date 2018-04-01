@@ -9,6 +9,10 @@ import (
 type Config struct {
 	Server     string
 	Statistics []Statistic
+	Alerts     struct {
+		Frequency int
+		Timespan  int
+	}
 }
 
 type Statistic struct {

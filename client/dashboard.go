@@ -87,8 +87,8 @@ func (d *Dashboard) Render() {
 func (p *DashboardPage) Refresh(currentIdx int, s Store) {
 	url := s.URLs[currentIdx]
 	p.Title.Text = url
-	p.Metrics.Text = s.String(url)
-	p.Alerts.Text = "" // TODO
+	p.Metrics.Text = s.Metrics.String(url, s.Timespans.Order)
+	p.Alerts.Text = s.Alerts.String(url)
 }
 
 func (d *Dashboard) RegisterEventHandlers() {

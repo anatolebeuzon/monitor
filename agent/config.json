@@ -4,5 +4,6 @@
     "Interval": 2,
     "RetainedResults": 1000000
   },
+  "AlertThreshold": 0.8,
   "URLs": ["https://youtube.com", "https://github.com"]
 }

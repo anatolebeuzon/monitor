@@ -17,15 +17,20 @@ func NewStats(timespan int) Stats {
 	}
 }
 
-type Alerts struct {
+// Alerts maps from a URL to an Alert
+type Alerts map[string]Alert
+
+type Alert struct {
 	Date           time.Time
-	Availabilities map[string]float64 // map from a URL to an availability between 0 and 1
+	Availability   float64
+	BelowThreshold bool // To know wether it is a new alert or a recovery
 }
 
-func NewAlerts() Alerts {
-	return Alerts{
+func NewAlert(availability float64, belowThreshold bool) Alert {
+	return Alert{
 		Date:           time.Now(),
-		Availabilities: make(map[string]float64),
+		Availability:   availability,
+		BelowThreshold: belowThreshold,
 	}
 }
 

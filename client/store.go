@@ -9,14 +9,19 @@ import (
 type Store struct {
 	Timespans Timespans
 	URLs      []string
-	// Metrics[url][timespan] will give the aggregatedMetric for the selected URL and timespan
-	Metrics map[string]map[int]payload.Metric
+	Metrics   Metrics
+	Alerts    Alerts
 }
 
 type Timespans struct {
 	Order  []int
 	Lookup map[int]bool
 }
+
+// Metrics[url][timespan] will give the aggregatedMetric for the selected URL and timespan
+type Metrics map[string]map[int]payload.Metric
+
+type Alerts map[string][]payload.Alert
 
 func NewStore() *Store {
 	return &Store{
@@ -25,15 +30,25 @@ func NewStore() *Store {
 			Lookup: make(map[int]bool),
 		},
 		URLs:    []string{},
-		Metrics: make(map[string]map[int]payload.Metric),
+		Metrics: make(Metrics),
+		Alerts:  make(Alerts),
 	}
 }
 
-func (s Store) String(url string) (str string) {
-	for _, timespan := range s.Timespans.Order {
+func (m Metrics) String(url string, timespansOrder []int) (str string) {
+	for _, timespan := range timespansOrder {
 		str += "Aggregate over " + strconv.Itoa(timespan) + " seconds :\n"
-		str += s.Metrics[url][timespan].String()
+		str += m[url][timespan].String()
 		str += "\n\n"
+	}
+	return
+}
+
+func (a Alerts) String(url string) (str string) {
+	for _, alert := range a[url] {
+		str += "Website " + url + " is down. availability="
+		str += strconv.FormatFloat(alert.Availability, 'f', 3, 64)
+		str += ", time=" + alert.Date.String() + "\n"
 	}
 	return
 }

@@ -7,9 +7,10 @@ import (
 )
 
 type Config struct {
-	ListeningPort int
-	Poll          PollConfig
-	URLs          []string
+	ListeningPort  int
+	Poll           PollConfig
+	AlertThreshold float64
+	URLs           []string
 }
 
 type PollConfig struct {

@@ -4,12 +4,21 @@ import (
 	"go-project-3/payload"
 )
 
-func (w *Websites) Availability(timespan int) payload.Alerts {
-	p := payload.NewAlerts()
+func (w *Websites) Alerts(timespan int, threshold float64) payload.Alerts {
+	alerts := make(payload.Alerts)
 	for _, website := range *w {
-		p.Availabilities[website.URL] = website.Availability(timespan)
+		avail := website.Availability(timespan)
+		if (avail < threshold) && !website.DownAlertSent {
+			// if the website is considered down but no alert for this event was sent yet
+			// send a "website is down" alert
+			alerts[website.URL] = payload.NewAlert(avail, true)
+		} else if (avail >= threshold) && website.DownAlertSent {
+			// if the website is considered up but website was last reported down
+			// send a "website has recovered" alert
+			alerts[website.URL] = payload.NewAlert(avail, false)
+		}
 	}
-	return p
+	return alerts
 }
 
 func (w *Website) Availability(timespan int) float64 {

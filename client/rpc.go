@@ -27,7 +27,29 @@ func (s *scheduler) GetData(timespan int) {
 		log.Fatal("RPC closing error:", err)
 	}
 
-	s.received <- stats
+	s.received.stats <- stats
+}
+
+func (s *scheduler) GetAlerts(timespan int) {
+	// TODO: fix duplicated code with GetData()
+
+	client, err := rpc.DialHTTP(rpcProtocol, s.config.Server)
+	if err != nil {
+		log.Fatal("Failed to connect to the daemon:", err)
+	}
+
+	var alerts payload.Alerts
+	err = client.Call("Handler.Alerts", &timespan, &alerts)
+	if err != nil {
+		log.Fatal("RPC error:", err)
+	}
+
+	err = client.Close()
+	if err != nil {
+		log.Fatal("RPC closing error:", err)
+	}
+
+	s.received.alerts <- alerts
 }
 
 func StopDaemon(rpcServer string) {

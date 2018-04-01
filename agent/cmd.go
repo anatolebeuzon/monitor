@@ -21,7 +21,15 @@ var Start = cli.Command{
 		fmt.Println(websites)
 
 		websites.schedulePolls(config.Poll)
-		websites.ServeRPC(config.ListeningPort)
+
+		// Create RPC handler
+		h := &Handler{
+			websites:       &websites,
+			AlertThreshold: config.AlertThreshold,
+			done:           make(chan bool),
+		}
+		ServeRPC(h, config.ListeningPort)
+
 		return nil
 	},
 }

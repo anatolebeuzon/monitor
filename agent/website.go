@@ -12,6 +12,11 @@ type Website struct {
 	// Hostname string
 	URL          string
 	TraceResults TraceResults
+	// DownAlertSent is true if at the last alert check from the front-end,
+	// the aggregate availability was below the threshold. Keeping this information:
+	// - avoids sending repetitive "website is down!" alerts
+	// - enables the sending of one "website is up!" alert upon website recovery
+	DownAlertSent bool
 }
 
 // Poll makes a GET request to a website, and measures response times and response codes.

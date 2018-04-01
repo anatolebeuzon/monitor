@@ -11,7 +11,6 @@
     }
   ],
   "Alerts": {
-    "Threshold": 0.8,
     "Frequency": 4,
     "Timespan": 120
   }

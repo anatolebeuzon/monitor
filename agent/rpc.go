@@ -12,18 +12,18 @@ import (
 // Handler contains all the websites and provides methods
 // exposed over RPC.
 type Handler struct {
-	websites *Websites
-	done     chan bool
-}
-
-// Websites replies with all the websites (including metrics info).
-func (h *Handler) Websites(args int, reply *Websites) error {
-	*reply = *h.websites
-	return nil
+	websites       *Websites
+	AlertThreshold float64
+	done           chan bool
 }
 
 func (h *Handler) Metrics(timespan int, reply *payload.Stats) error {
 	*reply = h.websites.aggregateResults(timespan)
+	return nil
+}
+
+func (h *Handler) Alerts(timespan int, reply *payload.Alerts) error {
+	*reply = h.websites.Alerts(timespan, h.AlertThreshold)
 	return nil
 }
 
@@ -40,10 +40,9 @@ func (h *Handler) StopDaemon(_, _ *struct{}) error {
 
 // ServeRPC starts an RPC server, and exposes the methods
 // of the handler type.
-func (w *Websites) ServeRPC(port int) {
-	done := make(chan bool)
+func ServeRPC(h *Handler, port int) {
 	rpcServer := rpc.NewServer()
-	rpcServer.Register(&Handler{websites: w, done: done})
+	rpcServer.Register(h)
 	rpcServer.HandleHTTP("/_goRPC_", "/debug/rpc") // use defaults used by HandleHTTP
 
 	// TODO: fix duplicate server info with client
@@ -54,7 +53,7 @@ func (w *Websites) ServeRPC(port int) {
 
 	// Gracefully handle shutdown requests
 	go func() {
-		<-done
+		<-h.done
 		httpServer.Shutdown(context.Background())
 	}()
 
