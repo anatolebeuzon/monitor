@@ -1,6 +1,7 @@
 package agent
 
 import (
+	"fmt"
 	"time"
 )
 
@@ -16,9 +17,12 @@ type TraceResult struct {
 	StatusCode  int
 }
 
-func (t TraceResults) startIndexFor(timespan int) int {
+func (t TraceResults) startIndexFor(timespan int, withDebug bool) int {
 	threshold := time.Now().Add(-time.Duration(timespan) * time.Second)
 	for i := len(t) - 1; i >= 0; i-- {
+		if withDebug {
+			fmt.Println("Is ", t[i].Date.String(), " before ", threshold.String(), " ?")
+		}
 		if t[i].Date.Before(threshold) {
 			return i + 1 // TODO: handle case where i + 1 is out of range
 		}
@@ -41,12 +45,15 @@ func (t TraceResults) CountCodes(startIdx int) map[int]int {
 	return codesCount
 }
 
-func (t TraceResults) Availability(startIdx int) float64 {
+func (t TraceResults) Availability(startIdx int, withDebug bool) float64 {
 	c := 0
 	for i := startIdx; i < len(t); i++ {
 		if t[i].IsValid() {
 			c++
 		}
+	}
+	if withDebug {
+		fmt.Printf("Valid count: %v out of %v, len(t): %v, startIdx: %v\n", c, len(t)-startIdx, len(t), startIdx)
 	}
 	return float64(c) / float64(len(t)-startIdx)
 }

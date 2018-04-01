@@ -3,6 +3,7 @@ package agent
 import (
 	"crypto/tls"
 	"fmt"
+	"net"
 	"net/http"
 	"net/http/httptrace"
 	"time"
@@ -21,6 +22,7 @@ type Website struct {
 
 // Poll makes a GET request to a website, and measures response times and response codes.
 func (w *Website) Poll(retainedResults int) {
+	// TODO: refactor this function!
 	req, err := http.NewRequest("GET", w.URL, nil)
 	if err != nil {
 		fmt.Println(err)
@@ -33,17 +35,23 @@ func (w *Website) Poll(retainedResults int) {
 	tr.Date = time.Now()
 
 	trace := &httptrace.ClientTrace{
-		DNSStart: func(_ httptrace.DNSStartInfo) { dns = time.Now() },
+		DNSStart: func(_ httptrace.DNSStartInfo) {
+			dns = time.Now()
+		},
 		DNSDone: func(_ httptrace.DNSDoneInfo) {
 			tr.DNStime = time.Since(dns)
 		},
 
-		TLSHandshakeStart: func() { tlsHandshake = time.Now() },
+		TLSHandshakeStart: func() {
+			tlsHandshake = time.Now()
+		},
 		TLSHandshakeDone: func(cs tls.ConnectionState, err error) {
 			tr.TLStime = time.Since(tlsHandshake)
 		},
 
-		ConnectStart: func(network, addr string) { connect = time.Now() },
+		ConnectStart: func(network, addr string) {
+			connect = time.Now()
+		},
 		ConnectDone: func(network, addr string, err error) {
 			tr.ConnectTime = time.Since(connect)
 		},
@@ -55,13 +63,23 @@ func (w *Website) Poll(retainedResults int) {
 
 	req = req.WithContext(httptrace.WithClientTrace(req.Context(), trace))
 	start = time.Now()
-	resp, err := http.DefaultTransport.RoundTrip(req)
+	transport := &http.Transport{
+		DisableKeepAlives: true,
+		DialContext: (&net.Dialer{
+			Timeout:   2 * time.Second,
+			KeepAlive: 2 * time.Second,
+			DualStack: true,
+		}).DialContext,
+		IdleConnTimeout:     2 * time.Second,
+		TLSHandshakeTimeout: 2 * time.Second,
+	}
+	resp, err := transport.RoundTrip(req)
 	if err != nil {
 		tr.Error = err
-		return
+	} else {
+		tr.StatusCode = resp.StatusCode
 	}
-	tr.StatusCode = resp.StatusCode
-
+	fmt.Println(tr)
 	// Only retain the last trace results
 	// TODO: improve this
 	itemsToDelete := 0

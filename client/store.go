@@ -46,8 +46,13 @@ func (m Metrics) String(url string, timespansOrder []int) (str string) {
 
 func (a Alerts) String(url string) (str string) {
 	for _, alert := range a[url] {
-		str += "Website " + url + " is down. availability="
-		str += strconv.FormatFloat(alert.Availability, 'f', 3, 64)
+		str += "Website " + url + " is "
+		if alert.BelowThreshold {
+			str += "down. "
+		} else {
+			str += "up. "
+		}
+		str += "availability=" + strconv.FormatFloat(alert.Availability, 'f', 3, 64)
 		str += ", time=" + alert.Date.String() + "\n"
 	}
 	return
