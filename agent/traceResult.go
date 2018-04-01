@@ -13,17 +13,18 @@ type TraceResults []TraceResult
 // It contains timing information about the different phases of the request,
 // as well as the request result (error or HTTP response code).
 type TraceResult struct {
-	// Date is the date at which the request's response was received
+	// Date is the date at which the request's response was received.
 	Date time.Time
 
-	// DNSTime is the duration of the DNS lookup
+	// DNSTime is the duration of the DNS lookup.
 	DNSTime time.Duration
 
 	// TLSTime is the duration of the TLS handshake, if applicable.
 	// If the website was contacted over HTTP, TLStime will be set to time.Duration(0).
 	TLSTime time.Duration
 
-	// ConnectTime is the
+	// ConnectTime is the TCP connection time.
+	// TODO: check this
 	ConnectTime time.Duration
 
 	// TTFB is the time to first byte.
@@ -117,8 +118,8 @@ func (t TraceResults) Availability(startIdx int) float64 {
 
 // IsValid returns whether the trace result is considered valid or not.
 // To be considered valid, the associated request must satisfy two conditions:
-// - the request did not end with an error
-// - the HTTP response is neither a Client nor a Server error
+// the request did not end with an error, and
+// the HTTP response is neither a Client error nor a Server error.
 func (t *TraceResult) IsValid() bool {
 	return (t.Error == nil) && (t.StatusCode < 400)
 }
