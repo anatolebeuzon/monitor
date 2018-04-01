@@ -13,6 +13,7 @@ type Website struct {
 	// Hostname string
 	URL          string
 	TraceResults TraceResults
+
 	// DownAlertSent is true if at the last alert check from the front-end,
 	// the aggregate availability was below the threshold. Keeping this information:
 	// - avoids sending repetitive "website is down!" alerts

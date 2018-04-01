@@ -1,6 +1,8 @@
 package client
 
 import (
+	"strconv"
+
 	ui "github.com/gizak/termui"
 )
 
@@ -13,6 +15,7 @@ type Dashboard struct {
 
 type DashboardPage struct {
 	Title   ui.Par
+	Counter ui.Par
 	Metrics ui.Par
 	Alerts  ui.Par
 }
@@ -20,6 +23,10 @@ type DashboardPage struct {
 func NewDashboardPage() DashboardPage {
 	title := ui.NewPar("")
 	title.Height = 3
+
+	counter := ui.NewPar("")
+	counter.Height = 3
+	counter.Border = false
 
 	metrics := ui.NewPar("")
 	metrics.Height = 20
@@ -31,6 +38,7 @@ func NewDashboardPage() DashboardPage {
 
 	return DashboardPage{
 		Title:   *title,
+		Counter: *counter,
 		Metrics: *metrics,
 		Alerts:  *alerts,
 	}
@@ -61,7 +69,7 @@ func (d *Dashboard) Show() error {
 
 	// build layout
 	ui.Body.AddRows(
-		ui.NewRow(ui.NewCol(2, 5, &d.page.Title)),
+		ui.NewRow(ui.NewCol(2, 5, &d.page.Title), ui.NewCol(1, 4, &d.page.Counter)),
 		ui.NewRow(ui.NewCol(12, 0, &d.page.Metrics)),
 		ui.NewRow(ui.NewCol(12, 0, &d.page.Alerts)),
 	)
@@ -87,6 +95,7 @@ func (d *Dashboard) Render() {
 func (p *DashboardPage) Refresh(currentIdx int, s Store) {
 	url := s.URLs[currentIdx]
 	p.Title.Text = url
+	p.Counter.Text = strconv.Itoa(currentIdx+1) + "/" + strconv.Itoa(len(s.URLs))
 	p.Metrics.Text = s.Metrics.String(url, s.Timespans.Order)
 	p.Alerts.Text = s.Alerts.String(url)
 }

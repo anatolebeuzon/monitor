@@ -5,5 +5,5 @@
     "RetainedResults": 1000000
   },
   "AlertThreshold": 0.8,
-  "URLs": ["https://youtube.com"]
+  "URLs": ["https://youtube.com", "https://apple.com"]
 }
