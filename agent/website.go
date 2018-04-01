@@ -32,28 +32,32 @@ func (w *Website) Poll(retainedResults int) {
 	var start, connect, dns, tlsHandshake time.Time
 
 	var tr TraceResult
-	tr.Date = time.Now()
 
 	trace := &httptrace.ClientTrace{
 		DNSStart: func(_ httptrace.DNSStartInfo) {
 			dns = time.Now()
 		},
 		DNSDone: func(_ httptrace.DNSDoneInfo) {
-			tr.DNStime = time.Since(dns)
+			tr.DNSTime = time.Since(dns)
 		},
+
+		ConnectStart: func(network, addr string) {
+			// TODO: do sth with addr?
+			connect = time.Now()
+		},
+		ConnectDone: func(network, addr string, err error) {
+			// TODO: do sth with addr and err?
+			tr.ConnectTime = time.Since(connect)
+		},
+
+		// TODO: use GotConn ?
 
 		TLSHandshakeStart: func() {
 			tlsHandshake = time.Now()
 		},
 		TLSHandshakeDone: func(cs tls.ConnectionState, err error) {
-			tr.TLStime = time.Since(tlsHandshake)
-		},
-
-		ConnectStart: func(network, addr string) {
-			connect = time.Now()
-		},
-		ConnectDone: func(network, addr string, err error) {
-			tr.ConnectTime = time.Since(connect)
+			// TODO: do sth with cs and err?
+			tr.TLSTime = time.Since(tlsHandshake)
 		},
 
 		GotFirstResponseByte: func() {
@@ -74,6 +78,7 @@ func (w *Website) Poll(retainedResults int) {
 		TLSHandshakeTimeout: 2 * time.Second,
 	}
 	resp, err := transport.RoundTrip(req)
+	tr.Date = time.Now()
 	if err != nil {
 		tr.Error = err
 	} else {

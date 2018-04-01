@@ -8,7 +8,7 @@ import (
 func (w *Websites) Alerts(timespan int, threshold float64) payload.Alerts {
 	alerts := make(payload.Alerts)
 	for i, website := range *w {
-		avail := website.Availability(timespan, false)
+		avail := website.Availability(timespan)
 		fmt.Println(website.URL, avail)
 		if (avail < threshold) && !website.DownAlertSent {
 			// if the website is considered down but no alert for this event was sent yet
@@ -25,14 +25,14 @@ func (w *Websites) Alerts(timespan int, threshold float64) payload.Alerts {
 	return alerts
 }
 
-func (w *Website) Availability(timespan int, withDebug bool) float64 {
+func (w *Website) Availability(timespan int) float64 {
 	// TODO: remove duplicated code with aggregateResults /!\
 
 	// Copy trace results to ensure that they are not modified by
 	// concurrent functions while results are being aggregated
 	tr := w.TraceResults
-	startIdx := tr.startIndexFor(timespan, withDebug)
-	return tr.Availability(startIdx, withDebug)
+	startIdx := tr.StartIndexFor(timespan)
+	return tr.Availability(startIdx)
 }
 
 func (w *Websites) aggregateResults(timespan int) payload.Stats {
@@ -47,10 +47,10 @@ func (w *Website) aggregateResults(timespan int) payload.Metric {
 	// Copy trace results to ensure that they are not modified by
 	// concurrent functions while results are being aggregated
 	tr := w.TraceResults
-	startIdx := tr.startIndexFor(timespan, false)
+	startIdx := tr.StartIndexFor(timespan)
 	TTFBs := tr.TTFBs(startIdx)
 	return payload.Metric{
-		Availability:     tr.Availability(startIdx, false),
+		Availability:     tr.Availability(startIdx),
 		MinTTFB:          minDuration(TTFBs),
 		MaxTTFB:          maxDuration(TTFBs),
 		AvgTTFB:          avgDuration(TTFBs),
