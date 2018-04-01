@@ -1,7 +1,6 @@
 package agent
 
 import (
-	"fmt"
 	"time"
 )
 
@@ -20,8 +19,7 @@ func avgDuration(durations []time.Duration) time.Duration {
 // minDuration returns the minimal duration of a slice of time.Duration
 func minDuration(durations []time.Duration) time.Duration {
 	if len(durations) == 0 {
-		// TODO: improve this error handling
-		fmt.Println("Empty slice")
+		// TODO: improve this error handling ?
 		return time.Duration(0)
 	}
 	min := durations[0]

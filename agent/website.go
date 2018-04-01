@@ -24,26 +24,26 @@ func (w *Website) Poll(retainedResults int) {
 
 	var start, connect, dns, tlsHandshake time.Time
 
-	var res TraceResult
+	var tr TraceResult
 
 	trace := &httptrace.ClientTrace{
 		DNSStart: func(_ httptrace.DNSStartInfo) { dns = time.Now() },
 		DNSDone: func(_ httptrace.DNSDoneInfo) {
-			res.DNStime = time.Since(dns)
+			tr.DNStime = time.Since(dns)
 		},
 
 		TLSHandshakeStart: func() { tlsHandshake = time.Now() },
 		TLSHandshakeDone: func(cs tls.ConnectionState, err error) {
-			res.TLStime = time.Since(tlsHandshake)
+			tr.TLStime = time.Since(tlsHandshake)
 		},
 
 		ConnectStart: func(network, addr string) { connect = time.Now() },
 		ConnectDone: func(network, addr string, err error) {
-			res.ConnectTime = time.Since(connect)
+			tr.ConnectTime = time.Since(connect)
 		},
 
 		GotFirstResponseByte: func() {
-			res.TTFB = time.Since(start)
+			tr.TTFB = time.Since(start)
 		},
 	}
 
@@ -54,8 +54,8 @@ func (w *Website) Poll(retainedResults int) {
 		fmt.Println(err)
 		return
 	}
-	res.StatusCode = resp.StatusCode
-	res.Date = time.Now()
+	tr.StatusCode = resp.StatusCode
+	tr.Date = time.Now()
 
 	// Only retain the last trace results
 	// TODO: improve this
@@ -63,7 +63,7 @@ func (w *Website) Poll(retainedResults int) {
 	if len(w.TraceResults) >= retainedResults {
 		itemsToDelete = len(w.TraceResults) + 1 - retainedResults
 	}
-	w.TraceResults = append(w.TraceResults[itemsToDelete:], res)
+	w.TraceResults = append(w.TraceResults[itemsToDelete:], tr)
 
 	// fmt.Println(w)
 	// fmt.Println(w.aggregateMetrics())
