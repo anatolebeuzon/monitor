@@ -40,9 +40,24 @@ func (t TraceResults) TTFBs(startIdx int) (durations []time.Duration) {
 func (t TraceResults) CountCodes(startIdx int) map[int]int {
 	codesCount := make(map[int]int)
 	for i := startIdx; i < len(t); i++ {
-		codesCount[t[i].StatusCode]++
+		code := t[i].StatusCode
+		if code != 0 {
+			// If the request led to an HTTP response code, and not an error
+			codesCount[code]++
+		}
 	}
 	return codesCount
+}
+
+func (t TraceResults) CountErrors(startIdx int) map[string]int {
+	errorsCount := make(map[string]int)
+	for i := startIdx; i < len(t); i++ {
+		error := t[i].Error
+		if error != nil {
+			errorsCount[error.Error()]++
+		}
+	}
+	return errorsCount
 }
 
 func (t TraceResults) Availability(startIdx int, withDebug bool) float64 {

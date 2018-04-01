@@ -1,6 +1,7 @@
 package payload
 
 import (
+	"strconv"
 	"time"
 )
 
@@ -40,8 +41,21 @@ type Metric struct {
 	MaxTTFB          time.Duration
 	AvgTTFB          time.Duration
 	StatusCodeCounts map[int]int
+	ErrorCounts      map[string]int
 }
 
-func (m Metric) String() string {
-	return "Average TTFB: " + m.AvgTTFB.String() + "\nMin TTFB: " + m.MinTTFB.String() + "\nMax TTFB: " + m.MaxTTFB.String()
+func (m Metric) String() (str string) {
+	str += "Availability: " + strconv.FormatFloat(m.Availability, 'f', 3, 64) + "\n"
+	str += "Average TTFB: " + m.AvgTTFB.String() + "\n"
+	str += "Min TTFB: " + m.MinTTFB.String() + "\n"
+	str += "Max TTFB: " + m.MaxTTFB.String() + "\n"
+	str += "Response code counts:\n"
+	for code, count := range m.StatusCodeCounts {
+		str += "    " + strconv.Itoa(code) + " -> " + strconv.Itoa(count) + " occurences\n"
+	}
+	str += "Error counts:\n"
+	for error, count := range m.ErrorCounts {
+		str += "    " + error + " -> " + strconv.Itoa(count) + " occurences\n"
+	}
+	return
 }
