@@ -34,13 +34,11 @@ func main() {
 	h := &agent.Handler{
 		Websites:       &websites,
 		AlertThreshold: config.AlertThreshold,
-		Done:           make(chan bool),
 	}
-	go agent.ServeRPC(h, config.ListeningPort)
+	agent.ServeRPC(h, config.ListeningPort, interrupt)
 
 	// Handle interrupt by system signal
-	<-interrupt
-	// TODO: properly close RPC
+	// TODO: improve closing logic?
 	fmt.Println("Closing properly...")
 	return
 }

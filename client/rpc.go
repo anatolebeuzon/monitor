@@ -1,7 +1,6 @@
 package client
 
 import (
-	"fmt"
 	"log"
 	"monitor/payload"
 	"net/rpc"
@@ -49,16 +48,4 @@ func (s *Scheduler) GetAlerts(timespan int) {
 	}
 
 	s.Received.alerts <- alerts
-}
-
-func StopDaemon(rpcServer string) {
-	client, err := rpc.DialHTTP(rpcProtocol, rpcServer)
-	if err != nil {
-		log.Fatal("dialing:", err)
-	}
-	err = client.Call("Handler.StopDaemon", struct{}{}, nil)
-	if err != nil {
-		log.Fatal("Failed to stop daemon:", err)
-	}
-	fmt.Println("Daemon stopped.")
 }
