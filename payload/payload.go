@@ -1,13 +1,28 @@
-package types
+package payload
 
 import (
 	"time"
 )
 
-// Package represents what is sent from the daemon to the client
-type Payload struct {
+// Stats represents what is sent from the daemon to the client
+type Stats struct {
 	Timespan int
-	Websites []WebsiteMetric
+	Metrics  map[string]Metric
+}
+
+func NewStats(timespan int) Stats {
+	return Stats{
+		Timespan: timespan,
+		Metrics:  make(map[string]Metric),
+	}
+}
+
+type Availabilities []WebsiteAvailability
+
+type WebsiteAvailability struct {
+	URL          string
+	Date         time.Time
+	Availability float64
 }
 
 type WebsiteMetric struct {

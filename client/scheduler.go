@@ -1,20 +1,20 @@
 package client
 
 import (
-	"go-project-3/types"
+	"go-project-3/payload"
 	"time"
 )
 
 type scheduler struct {
 	config   Config
-	received chan types.Payload
+	received chan payload.Stats
 	updateUI chan bool
 }
 
 func newScheduler(c Config) *scheduler {
 	return &scheduler{
 		config:   c,
-		received: make(chan types.Payload),
+		received: make(chan payload.Stats),
 		updateUI: make(chan bool),
 	}
 }
@@ -40,21 +40,21 @@ func (s *scheduler) init() *Store {
 
 func (s *scheduler) receive(store *Store) {
 	for {
-		Package := <-s.received
+		stats := <-s.received
 
 		// Check that timespan is registered
-		if _, ok := store.Timespans.Lookup[Package.Timespan]; !ok {
-			store.Timespans.Lookup[Package.Timespan] = true
-			store.Timespans.Order = append(store.Timespans.Order, Package.Timespan)
+		if _, ok := store.Timespans.Lookup[stats.Timespan]; !ok {
+			store.Timespans.Lookup[stats.Timespan] = true
+			store.Timespans.Order = append(store.Timespans.Order, stats.Timespan)
 		}
 
-		for _, w := range Package.Websites {
+		for url, metric := range stats.Metrics {
 			// Check that URL is registered
-			if _, ok := store.Metrics[w.URL]; !ok {
-				store.Metrics[w.URL] = make(map[int]types.Metric)
-				store.URLs = append(store.URLs, w.URL)
+			if _, ok := store.Metrics[url]; !ok {
+				store.Metrics[url] = make(map[int]payload.Metric)
+				store.URLs = append(store.URLs, url)
 			}
-			store.Metrics[w.URL][Package.Timespan] = w.Metric
+			store.Metrics[url][stats.Timespan] = metric
 		}
 		s.updateUI <- true
 	}

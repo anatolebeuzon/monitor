@@ -2,7 +2,7 @@ package client
 
 import (
 	"fmt"
-	"go-project-3/types"
+	"go-project-3/payload"
 	"log"
 	"net/rpc"
 )
@@ -16,8 +16,8 @@ func (s *scheduler) GetData(timespan int) {
 		log.Fatal("Failed to connect to the daemon:", err)
 	}
 
-	var Package types.Payload
-	err = client.Call("Handler.Metrics", &timespan, &Package)
+	var stats payload.Stats
+	err = client.Call("Handler.Metrics", &timespan, &stats)
 	if err != nil {
 		log.Fatal("RPC error:", err)
 	}
@@ -27,7 +27,7 @@ func (s *scheduler) GetData(timespan int) {
 		log.Fatal("RPC closing error:", err)
 	}
 
-	s.received <- Package
+	s.received <- stats
 }
 
 func StopDaemon(rpcServer string) {

@@ -2,7 +2,7 @@ package agent
 
 import (
 	"context"
-	"go-project-3/types"
+	"go-project-3/payload"
 	"log"
 	"net/http"
 	"net/rpc"
@@ -22,7 +22,7 @@ func (h *Handler) Websites(args int, reply *Websites) error {
 	return nil
 }
 
-func (h *Handler) Metrics(timespan int, reply *types.Payload) error {
+func (h *Handler) Metrics(timespan int, reply *payload.Stats) error {
 	*reply = h.websites.aggregateResults(timespan)
 	return nil
 }

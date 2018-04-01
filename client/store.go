@@ -1,7 +1,7 @@
 package client
 
 import (
-	"go-project-3/types"
+	"go-project-3/payload"
 	"strconv"
 )
 
@@ -10,7 +10,7 @@ type Store struct {
 	Timespans Timespans
 	URLs      []string
 	// Metrics[url][timespan] will give the aggregatedMetric for the selected URL and timespan
-	Metrics map[string]map[int]types.Metric
+	Metrics map[string]map[int]payload.Metric
 }
 
 type Timespans struct {
@@ -25,7 +25,7 @@ func NewStore() *Store {
 			Lookup: make(map[int]bool),
 		},
 		URLs:    []string{},
-		Metrics: make(map[string]map[int]types.Metric),
+		Metrics: make(map[string]map[int]payload.Metric),
 	}
 }
 
