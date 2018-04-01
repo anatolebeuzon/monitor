@@ -1,14 +1,14 @@
 package client
 
 import (
-	"go-project-3/payload"
+	"monitor/payload"
 	"time"
 )
 
-type scheduler struct {
-	config   Config
-	received receivers
-	updateUI chan bool
+type Scheduler struct {
+	Config   Config
+	Received receivers
+	UpdateUI chan bool
 }
 
 type receivers struct {
@@ -16,25 +16,25 @@ type receivers struct {
 	alerts chan payload.Alerts
 }
 
-func newScheduler(c Config) *scheduler {
-	return &scheduler{
-		config: c,
-		received: receivers{
+func NewScheduler(c Config) *Scheduler {
+	return &Scheduler{
+		Config: c,
+		Received: receivers{
 			stats:  make(chan payload.Stats),
 			alerts: make(chan payload.Alerts),
 		},
-		updateUI: make(chan bool),
+		UpdateUI: make(chan bool),
 	}
 }
 
-func (s *scheduler) init() *Store {
+func (s *Scheduler) Init() *Store {
 	// Create receiver
 	store := NewStore()
 
 	go s.receive(store)
 
 	// Launch stat check routines
-	for _, stat := range s.config.Statistics {
+	for _, stat := range s.Config.Statistics {
 		go func(stat Statistic) {
 			s.GetData(stat.Timespan)
 			for range time.Tick(time.Duration(stat.Frequency) * time.Second) {
@@ -45,18 +45,18 @@ func (s *scheduler) init() *Store {
 
 	// Launch alert check routine
 	go func() {
-		for range time.Tick(time.Duration(s.config.Alerts.Frequency) * time.Second) {
-			s.GetAlerts(s.config.Alerts.Timespan)
+		for range time.Tick(time.Duration(s.Config.Alerts.Frequency) * time.Second) {
+			s.GetAlerts(s.Config.Alerts.Timespan)
 		}
 	}()
 
 	return store
 }
 
-func (s *scheduler) receive(store *Store) {
+func (s *Scheduler) receive(store *Store) {
 	for {
 		select {
-		case stats := <-s.received.stats:
+		case stats := <-s.Received.stats:
 
 			// Check that timespan is registered
 			// TODO: do this while reading config, it makes no sense to do it here
@@ -73,14 +73,14 @@ func (s *scheduler) receive(store *Store) {
 				}
 				store.Metrics[url][stats.Timespan] = metric
 			}
-			s.updateUI <- true
+			s.UpdateUI <- true
 
-		case alerts := <-s.received.alerts:
+		case alerts := <-s.Received.alerts:
 			for url, alert := range alerts {
 				// TODO: no check that URL is registered. Is it okay?
 				store.Alerts[url] = append(store.Alerts[url], alert)
 			}
-			s.updateUI <- true
+			s.UpdateUI <- true
 		}
 	}
 }

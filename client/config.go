@@ -20,7 +20,7 @@ type Statistic struct {
 	Timespan  int
 }
 
-func readConfig(path string) (config Config, err error) {
+func ReadConfig(path string) (config Config, err error) {
 	wd, err := os.Getwd()
 	if err != nil {
 		return config, err

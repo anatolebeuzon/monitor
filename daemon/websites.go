@@ -1,5 +1,7 @@
 package agent
 
+import "fmt"
+
 type Websites []Website
 
 func NewWebsites(URLs []string) (w Websites) {
@@ -9,8 +11,9 @@ func NewWebsites(URLs []string) (w Websites) {
 	return
 }
 
-func (w Websites) schedulePolls(p PollConfig) {
+func (w Websites) SchedulePolls(p PollConfig) {
 	for i := range w {
 		go w[i].schedulePolls(p)
 	}
+	fmt.Println("All checks launched.")
 }

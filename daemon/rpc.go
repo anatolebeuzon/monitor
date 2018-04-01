@@ -2,8 +2,9 @@ package agent
 
 import (
 	"context"
-	"go-project-3/payload"
+	"fmt"
 	"log"
+	"monitor/payload"
 	"net/http"
 	"net/rpc"
 	"strconv"
@@ -12,18 +13,18 @@ import (
 // Handler contains all the websites and provides methods
 // exposed over RPC.
 type Handler struct {
-	websites       *Websites
+	Websites       *Websites
 	AlertThreshold float64
-	done           chan bool
+	Done           chan bool
 }
 
 func (h *Handler) Metrics(timespan int, reply *payload.Stats) error {
-	*reply = h.websites.aggregateResults(timespan)
+	*reply = h.Websites.aggregateResults(timespan)
 	return nil
 }
 
 func (h *Handler) Alerts(timespan int, reply *payload.Alerts) error {
-	*reply = h.websites.Alerts(timespan, h.AlertThreshold)
+	*reply = h.Websites.Alerts(timespan, h.AlertThreshold)
 	return nil
 }
 
@@ -34,7 +35,7 @@ func (h *Handler) Alerts(timespan int, reply *payload.Alerts) error {
 // In particular, a "Handler.StopDaemon" call from a client will receive a response
 // before the server shuts down.
 func (h *Handler) StopDaemon(_, _ *struct{}) error {
-	h.done <- true
+	h.Done <- true
 	return nil
 }
 
@@ -53,10 +54,11 @@ func ServeRPC(h *Handler, port int) {
 
 	// Gracefully handle shutdown requests
 	go func() {
-		<-h.done
+		<-h.Done
 		httpServer.Shutdown(context.Background())
 	}()
 
+	fmt.Println("Listening for RPC requests on port", port)
 	err := httpServer.ListenAndServe()
 	if err != nil {
 		log.Fatal(err)

@@ -1,7 +1,7 @@
 package client
 
 import (
-	"go-project-3/payload"
+	"monitor/payload"
 	"strconv"
 )
 

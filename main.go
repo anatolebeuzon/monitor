@@ -1,9 +1,9 @@
 package main
 
 import (
-	"go-project-3/agent"
-	"go-project-3/client"
 	"log"
+	"monitor/client"
+	"monitor/daemon"
 	"os"
 
 	"github.com/urfave/cli"

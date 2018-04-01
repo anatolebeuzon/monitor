@@ -39,7 +39,7 @@ func (w *Website) Poll(retainedResults int) {
 	} else {
 		tr.StatusCode = resp.StatusCode
 	}
-	fmt.Println(tr)
+	// fmt.Println(tr)
 
 	w.SaveResult(&tr, retainedResults)
 }

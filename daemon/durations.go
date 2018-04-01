@@ -4,7 +4,7 @@ import (
 	"time"
 )
 
-// avgDuration returns the average duration of a slice of time.Duration
+// avgDuration returns the average duration of a slice of time.Duration.
 func avgDuration(durations []time.Duration) time.Duration {
 	avg := time.Duration(0)
 	for _, duration := range durations {
@@ -16,7 +16,7 @@ func avgDuration(durations []time.Duration) time.Duration {
 	return avg
 }
 
-// minDuration returns the minimal duration of a slice of time.Duration
+// minDuration returns the minimal duration of a slice of time.Duration.
 func minDuration(durations []time.Duration) time.Duration {
 	if len(durations) == 0 {
 		// TODO: improve this error handling ?
@@ -31,7 +31,7 @@ func minDuration(durations []time.Duration) time.Duration {
 	return min
 }
 
-// maxDuration returns the maximal duration of a slice of time.Duration
+// maxDuration returns the maximal duration of a slice of time.Duration.
 func maxDuration(durations []time.Duration) time.Duration {
 	max := time.Duration(0)
 	for _, duration := range durations {

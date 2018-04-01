@@ -2,16 +2,15 @@ package client
 
 import (
 	"fmt"
-	"go-project-3/payload"
 	"log"
+	"monitor/payload"
 	"net/rpc"
 )
 
 const rpcProtocol = "tcp"
 
-func (s *scheduler) GetData(timespan int) {
-
-	client, err := rpc.DialHTTP(rpcProtocol, s.config.Server)
+func (s *Scheduler) GetData(timespan int) {
+	client, err := rpc.DialHTTP(rpcProtocol, s.Config.Server)
 	if err != nil {
 		log.Fatal("Failed to connect to the daemon:", err)
 	}
@@ -27,13 +26,13 @@ func (s *scheduler) GetData(timespan int) {
 		log.Fatal("RPC closing error:", err)
 	}
 
-	s.received.stats <- stats
+	s.Received.stats <- stats
 }
 
-func (s *scheduler) GetAlerts(timespan int) {
+func (s *Scheduler) GetAlerts(timespan int) {
 	// TODO: fix duplicated code with GetData()
 
-	client, err := rpc.DialHTTP(rpcProtocol, s.config.Server)
+	client, err := rpc.DialHTTP(rpcProtocol, s.Config.Server)
 	if err != nil {
 		log.Fatal("Failed to connect to the daemon:", err)
 	}
@@ -49,7 +48,7 @@ func (s *scheduler) GetAlerts(timespan int) {
 		log.Fatal("RPC closing error:", err)
 	}
 
-	s.received.alerts <- alerts
+	s.Received.alerts <- alerts
 }
 
 func StopDaemon(rpcServer string) {
