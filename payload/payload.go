@@ -5,7 +5,7 @@ import (
 )
 
 // Stats represents what is sent from the daemon to the client
-type Stats struct {
+type Stats struct { // TODO: add Date?
 	Timespan int
 	Metrics  map[string]Metric
 }
@@ -13,25 +13,24 @@ type Stats struct {
 func NewStats(timespan int) Stats {
 	return Stats{
 		Timespan: timespan,
-		Metrics:  make(map[string]Metric),
+		Metrics:  make(map[string]Metric), // map from a URL to a Metric
 	}
 }
 
-type Availabilities []WebsiteAvailability
-
-type WebsiteAvailability struct {
-	URL          string
-	Date         time.Time
-	Availability float64
+type Alerts struct {
+	Date           time.Time
+	Availabilities map[string]float64 // map from a URL to an availability between 0 and 1
 }
 
-type WebsiteMetric struct {
-	URL    string
-	Metric Metric
+func NewAlerts() Alerts {
+	return Alerts{
+		Date:           time.Now(),
+		Availabilities: make(map[string]float64),
+	}
 }
 
 type Metric struct {
-	AvgAvail         float64
+	Availability     float64
 	MinTTFB          time.Duration
 	MaxTTFB          time.Duration
 	AvgTTFB          time.Duration

@@ -12,6 +12,7 @@ type TraceResult struct {
 	TLStime     time.Duration
 	ConnectTime time.Duration
 	TTFB        time.Duration
+	Error       error
 	StatusCode  int
 }
 
@@ -32,10 +33,24 @@ func (t TraceResults) TTFBs(startIdx int) (durations []time.Duration) {
 	return
 }
 
-func (t *TraceResults) CountCodes(startIdx int) map[int]int {
+func (t TraceResults) CountCodes(startIdx int) map[int]int {
 	codesCount := make(map[int]int)
-	for i := startIdx; i < len(*t); i++ {
-		codesCount[(*t)[i].StatusCode]++
+	for i := startIdx; i < len(t); i++ {
+		codesCount[t[i].StatusCode]++
 	}
 	return codesCount
+}
+
+func (t TraceResults) Availability(startIdx int) float64 {
+	c := 0
+	for i := startIdx; i < len(t); i++ {
+		if t[i].IsValid() {
+			c++
+		}
+	}
+	return float64(c) / float64(len(t)-startIdx)
+}
+
+func (t *TraceResult) IsValid() bool {
+	return (t.Error == nil) && (t.StatusCode < 400)
 }
