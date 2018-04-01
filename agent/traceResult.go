@@ -15,19 +15,19 @@ type TraceResult struct {
 	StatusCode  int
 }
 
-func (t *TraceResults) startIndexFor(timespan int) int {
+func (t TraceResults) startIndexFor(timespan int) int {
 	threshold := time.Now().Add(-time.Duration(timespan) * time.Second)
-	for i := len(*t) - 1; i >= 0; i-- {
-		if (*t)[i].Date.Before(threshold) {
+	for i := len(t) - 1; i >= 0; i-- {
+		if t[i].Date.Before(threshold) {
 			return i + 1 // TODO: handle case where i + 1 is out of range
 		}
 	}
 	return 0
 }
 
-func (t *TraceResults) TTFBs(startIdx int) (durations []time.Duration) {
-	for i := startIdx; i < len(*t); i++ {
-		durations = append(durations, (*t)[i].TTFB)
+func (t TraceResults) TTFBs(startIdx int) (durations []time.Duration) {
+	for i := startIdx; i < len(t); i++ {
+		durations = append(durations, t[i].TTFB)
 	}
 	return
 }
