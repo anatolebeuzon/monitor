@@ -25,15 +25,6 @@ func NewStore() *Store {
 	}
 }
 
-func (m Metrics) String(url string, timespansOrder []int) (str string) {
-	for _, timespan := range timespansOrder {
-		str += "Aggregate over " + strconv.Itoa(timespan) + " seconds :\n"
-		str += m[url][timespan].String()
-		str += "\n\n"
-	}
-	return
-}
-
 func (a Alerts) String(url string) (str string) {
 	for _, alert := range a[url] {
 		str += "Website " + url + " is "

@@ -1,6 +1,7 @@
 package agent
 
 import (
+	"monitor/payload"
 	"time"
 )
 
@@ -13,24 +14,10 @@ type TraceResults []TraceResult
 // It contains timing information about the different phases of the request,
 // as well as the request result (error or HTTP response code).
 type TraceResult struct {
-	// Date is the date at which the request's response was received.
+	// Date is the date at which the first byte of the response was received.
 	Date time.Time
 
-	// DNSTime is the duration of the DNS lookup.
-	DNSTime time.Duration
-
-	// TLSTime is the duration of the TLS handshake, if applicable.
-	// If the website was contacted over HTTP, TLStime will be set to time.Duration(0).
-	TLSTime time.Duration
-
-	// ConnectTime is the TCP connection time.
-	// TODO: check this
-	ConnectTime time.Duration
-
-	// TTFB is the time to first byte.
-	// It is computed from the start of the request and therefore includes other
-	// durations such as DNS lookup time.
-	TTFB time.Duration
+	Timing payload.Timing
 
 	// Error stores the error if the request resulted in an error, or nil otherwise.
 	Error error
@@ -72,9 +59,45 @@ func (t TraceResults) StartIndexFor(timespan int) int {
 // It returns those TTFB values in a slice.
 func (t TraceResults) TTFBs(startIdx int) (durations []time.Duration) {
 	for i := startIdx; i < len(t); i++ {
-		durations = append(durations, t[i].TTFB)
+		durations = append(durations, t[i].Timing.TTFB)
 	}
 	return
+}
+
+func (t TraceResults) Average(startIdx int) (avg payload.Timing) {
+	for i := startIdx; i < len(t); i++ {
+		avg.DNS += t[i].Timing.DNS
+		avg.TCP += t[i].Timing.TCP
+		avg.TLS += t[i].Timing.TLS
+		avg.Server += t[i].Timing.Server
+		avg.TTFB += t[i].Timing.TTFB
+	}
+	if len(t)-startIdx != 0 {
+		avg.DNS /= time.Duration(len(t) - startIdx)
+		avg.TCP /= time.Duration(len(t) - startIdx)
+		avg.TLS /= time.Duration(len(t) - startIdx)
+		avg.Server /= time.Duration(len(t) - startIdx)
+		avg.TTFB /= time.Duration(len(t) - startIdx)
+	}
+	return
+}
+
+func (t TraceResults) Max(startIdx int) (max payload.Timing) {
+	for i := startIdx; i < len(t); i++ {
+		max.DNS = maxDuration(t[i].Timing.DNS, max.DNS)
+		max.TCP = maxDuration(t[i].Timing.TCP, max.TCP)
+		max.TLS = maxDuration(t[i].Timing.TLS, max.TLS)
+		max.Server = maxDuration(t[i].Timing.Server, max.Server)
+		max.TTFB = maxDuration(t[i].Timing.TTFB, max.TTFB)
+	}
+	return
+}
+
+func maxDuration(d1, d2 time.Duration) time.Duration {
+	if d1 > d2 {
+		return d1
+	}
+	return d2
 }
 
 // CountCodes counts the HTTP response codes in the latest trace results, starting from startIdx.

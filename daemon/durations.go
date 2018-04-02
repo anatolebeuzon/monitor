@@ -32,12 +32,12 @@ func minDuration(durations []time.Duration) time.Duration {
 }
 
 // maxDuration returns the maximal duration of a slice of time.Duration.
-func maxDuration(durations []time.Duration) time.Duration {
-	max := time.Duration(0)
-	for _, duration := range durations {
-		if duration > max {
-			max = duration
-		}
-	}
-	return max
-}
+// func maxDuration(durations []time.Duration) time.Duration {
+// 	max := time.Duration(0)
+// 	for _, duration := range durations {
+// 		if duration > max {
+// 			max = duration
+// 		}
+// 	}
+// 	return max
+// }

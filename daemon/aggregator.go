@@ -46,12 +46,11 @@ func (w *Website) aggregateResults(timespan int) payload.Metric {
 	// concurrent functions while results are being aggregated
 	tr := w.TraceResults
 	startIdx := tr.StartIndexFor(timespan)
-	TTFBs := tr.TTFBs(startIdx)
+	// TTFBs := tr.TTFBs(startIdx)
 	return payload.Metric{
 		Availability:     tr.Availability(startIdx),
-		MinTTFB:          minDuration(TTFBs),
-		MaxTTFB:          maxDuration(TTFBs),
-		AvgTTFB:          avgDuration(TTFBs),
+		Average:          tr.Average(startIdx),
+		Max:              tr.Max(startIdx),
 		StatusCodeCounts: tr.CountCodes(startIdx),
 		ErrorCounts:      tr.CountErrors(startIdx),
 	}

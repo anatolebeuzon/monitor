@@ -1,7 +1,6 @@
 package payload
 
 import (
-	"strconv"
 	"time"
 )
 
@@ -37,25 +36,32 @@ func NewAlert(availability float64, belowThreshold bool) Alert {
 
 type Metric struct {
 	Availability     float64
-	MinTTFB          time.Duration
-	MaxTTFB          time.Duration
-	AvgTTFB          time.Duration
+	Average          Timing
+	Max              Timing
 	StatusCodeCounts map[int]int
 	ErrorCounts      map[string]int
 }
 
-func (m Metric) String() (str string) {
-	str += "Availability: " + strconv.FormatFloat(m.Availability, 'f', 3, 64) + "\n"
-	str += "Average TTFB: " + m.AvgTTFB.String() + "\n"
-	str += "Min TTFB: " + m.MinTTFB.String() + "\n"
-	str += "Max TTFB: " + m.MaxTTFB.String() + "\n"
-	str += "Response code counts:\n"
-	for code, count := range m.StatusCodeCounts {
-		str += "    " + strconv.Itoa(code) + " -> " + strconv.Itoa(count) + " occurences\n"
-	}
-	str += "Error counts:\n"
-	for error, count := range m.ErrorCounts {
-		str += "    " + error + " -> " + strconv.Itoa(count) + " occurences\n"
-	}
-	return
+type Timing struct {
+	// DNS is the duration of the DNS lookup.
+	DNS time.Duration
+
+	// TCP is the TCP connection time.
+	TCP time.Duration
+
+	// TLS is the duration of the TLS handshake, if applicable.
+	// If the website was contacted over HTTP, TLS will be set to time.Duration(0).
+	TLS time.Duration
+
+	// Server is the server processing time. It measures the time it takes the server to
+	// deliver the first response byte since a connection was established.
+	Server time.Duration
+
+	// TTFB is the time to first byte.
+	// It is equal to the sum of all the previous durations.
+	TTFB time.Duration
+}
+
+func (t *Timing) ToSlice() []time.Duration {
+	return []time.Duration{t.DNS, t.TCP, t.TLS, t.Server, t.TTFB}
 }

@@ -1,7 +1,6 @@
 package agent
 
 import (
-	"crypto/tls"
 	"fmt"
 	"net"
 	"net/http"
@@ -29,11 +28,28 @@ func (w *Website) Poll(retainedResults int) {
 		return
 	}
 
-	var tr TraceResult
+	var t0, t1, t2, t3, t4, t5 time.Time
 
-	req = req.WithContext(httptrace.WithClientTrace(req.Context(), NewTrace(&tr)))
+	trace := &httptrace.ClientTrace{
+		DNSStart:             func(_ httptrace.DNSStartInfo) { t0 = time.Now() },
+		DNSDone:              func(_ httptrace.DNSDoneInfo) { t1 = time.Now() },
+		ConnectStart:         func(_, _ string) { t2 = time.Now() },
+		ConnectDone:          func(_, _ string, err error) { t3 = time.Now() }, // TODO: handle err?
+		GotConn:              func(_ httptrace.GotConnInfo) { t4 = time.Now() },
+		GotFirstResponseByte: func() { t5 = time.Now() },
+	}
+
+	req = req.WithContext(httptrace.WithClientTrace(req.Context(), trace))
 	resp, err := NewTransport().RoundTrip(req)
-	tr.Date = time.Now()
+
+	var tr TraceResult
+	tr.Date = t5
+	tr.Timing.DNS = t1.Sub(t0)
+	tr.Timing.TCP = t3.Sub(t2)
+	tr.Timing.TLS = t4.Sub(t3)
+	tr.Timing.Server = t5.Sub(t4)
+	tr.Timing.TTFB = t5.Sub(t0)
+
 	if err != nil {
 		tr.Error = err
 	} else {
@@ -63,34 +79,6 @@ func (w *Website) SaveResult(tr *TraceResult, retainedResults int) {
 func (w *Website) schedulePolls(p PollConfig) {
 	for range time.Tick(time.Duration(p.Interval) * time.Second) {
 		w.Poll(p.RetainedResults)
-	}
-}
-
-func NewTrace(tr *TraceResult) *httptrace.ClientTrace {
-	var start, connect, dns, tlsHandshake time.Time
-	start = time.Now()
-
-	return &httptrace.ClientTrace{
-		DNSStart: func(_ httptrace.DNSStartInfo) { dns = time.Now() },
-		DNSDone:  func(_ httptrace.DNSDoneInfo) { tr.DNSTime = time.Since(dns) },
-		ConnectStart: func(network, addr string) {
-			// TODO: do sth with addr?
-			connect = time.Now()
-		},
-		ConnectDone: func(network, addr string, err error) {
-			// TODO: do sth with addr and err?
-			tr.ConnectTime = time.Since(connect)
-		},
-
-		// TODO: use GotConn ?
-
-		TLSHandshakeStart: func() { tlsHandshake = time.Now() },
-		TLSHandshakeDone: func(cs tls.ConnectionState, err error) {
-			// TODO: do sth with cs and err?
-			tr.TLSTime = time.Since(tlsHandshake)
-		},
-
-		GotFirstResponseByte: func() { tr.TTFB = time.Since(start) },
 	}
 }
 

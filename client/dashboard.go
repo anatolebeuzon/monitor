@@ -4,6 +4,7 @@ import (
 	"monitor/payload"
 	"sort"
 	"strconv"
+	"time"
 
 	ui "github.com/gizak/termui"
 )
@@ -30,7 +31,7 @@ type DashboardSide struct {
 	TTFB         ui.Par
 	CodeCounts   ui.BarChart
 	Errors       ui.Par
-	Breakdown    ui.MBarChart
+	Breakdown    ui.Table
 }
 
 func NewDashboardPage(s *Store, c *Config) DashboardPage {
@@ -73,7 +74,7 @@ func NewDashboardSide(s Statistic, color ui.Attribute) DashboardSide {
 
 	CodeCounts := ui.NewBarChart()
 	CodeCounts.BorderLabel = "Response code counts"
-	CodeCounts.Height = 10
+	CodeCounts.Height = 25
 	CodeCounts.BorderFg = color
 
 	Errors := ui.NewPar("")
@@ -81,13 +82,19 @@ func NewDashboardSide(s Statistic, color ui.Attribute) DashboardSide {
 	Errors.Height = 10
 	Errors.BorderFg = color
 
-	Breakdown := ui.NewMBarChart()
+	Breakdown := ui.NewTable()
 	Breakdown.BorderLabel = "Request breakdown"
-	Breakdown.Height = 25
-	Breakdown.TextColor = ui.ColorGreen
+	Breakdown.Rows = [][]string{
+		[]string{"", "DNS lookup", "TCP connection", "TLS handshake", "Server processing", "Total (TTFB)"},
+		[]string{},
+		[]string{},
+	}
+	Breakdown.FgColor = ui.ColorWhite
+	Breakdown.BgColor = ui.ColorDefault
 	Breakdown.BorderFg = color
-	// Breakdown.BarColor = ui.ColorRed
-	// Breakdown.NumColor = ui.ColorYellow
+	Breakdown.Height = 10
+	Breakdown.TextAlign = ui.AlignCenter
+	Breakdown.Separator = false
 
 	return DashboardSide{
 		Timespan:     s.Timespan,
@@ -129,10 +136,8 @@ func (d *Dashboard) Show() error {
 		ui.NewRow(ui.NewCol(4, 1, &d.page.Left.Title), ui.NewCol(4, 2, &d.page.Right.Title)),
 		ui.NewRow(ui.NewCol(6, 0, &d.page.Left.Availability), ui.NewCol(6, 0, &d.page.Right.Availability)),
 		ui.NewRow(
-			ui.NewCol(4, 0, &d.page.Left.TTFB, &d.page.Left.CodeCounts, &d.page.Left.Errors),
-			ui.NewCol(2, 0, &d.page.Left.Breakdown),
-			ui.NewCol(4, 0, &d.page.Right.TTFB, &d.page.Right.CodeCounts, &d.page.Right.Errors),
-			ui.NewCol(2, 0, &d.page.Right.Breakdown),
+			ui.NewCol(6, 0, &d.page.Left.TTFB, &d.page.Left.Breakdown, &d.page.Left.Errors),
+			ui.NewCol(6, 0, &d.page.Right.TTFB, &d.page.Right.Breakdown, &d.page.Right.Errors),
 		),
 		ui.NewRow(ui.NewCol(12, 0, &d.page.Alerts)),
 	)
@@ -185,9 +190,14 @@ func (s *DashboardSide) Refresh(m payload.Metric) {
 		s.Errors.Text += err + " (" + strconv.Itoa(c) + " times)\n"
 	}
 
-	// s.Counter.Text = strconv.Itoa(currentIdx+1) + "/" + strconv.Itoa(len(s.URLs))
-	// s.Metrics.Text = s.Metrics.String(url, s.Timespans.Order)
-	s.CodeCounts.Data, s.CodeCounts.DataLabels = GenerateBarChart(m)
+	// Update TTFB stats
+	s.TTFB.Text = "Average: " + m.Average.TTFB.String()
+
+	// Update request timing breakdown
+	s.Breakdown.Rows[1] = ToString("Avg", m.Average.ToSlice())
+	s.Breakdown.Rows[2] = ToString("Max", m.Max.ToSlice())
+
+	s.CodeCounts.Data, s.CodeCounts.DataLabels = ExtractResponseCounts(m)
 }
 
 func (d *Dashboard) RegisterEventHandlers() {
@@ -210,7 +220,7 @@ func (d *Dashboard) RegisterEventHandlers() {
 	})
 }
 
-func GenerateBarChart(m payload.Metric) (values []int, labels []string) {
+func ExtractResponseCounts(m payload.Metric) (values []int, labels []string) {
 	var keys sort.IntSlice
 	for key := range m.StatusCodeCounts {
 		keys = append(keys, key)
@@ -230,6 +240,14 @@ func GenerateBarChart(m payload.Metric) (values []int, labels []string) {
 func Count(errors map[string]int) (c int) {
 	for _, i := range errors {
 		c += i
+	}
+	return
+}
+
+func ToString(prefix string, d []time.Duration) (s []string) {
+	s = append(s, prefix)
+	for _, duration := range d {
+		s = append(s, duration.Round(time.Millisecond).String())
 	}
 	return
 }
