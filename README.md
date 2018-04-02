@@ -23,6 +23,11 @@ The client, `monitorctl`:
 
 ## Why Go?
 
+Go has many great features, amongst which:
+
+* As it is a compiled, statically typed language, it is faster and requires less resources than dynamically typed languages such as Python or JavaScript. Still, its type system is more straightforward than those of C++ or Java
+* By design, Go is a concurrent language. It is an especially interesting feature for this project, as the daemon has to deal with numerous tasks at once, such as polling thousands of websites while aggregating metrics and responding to the client. Gorountines and channels provide an effective way of doing all those things while keeping a logical, structured program.
+
 ## Why RPC?
 
 ## About process daemonization

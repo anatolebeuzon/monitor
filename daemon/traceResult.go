@@ -117,6 +117,7 @@ func (t TraceResults) Availability(startIdx int) float64 {
 }
 
 // IsValid returns whether the trace result is considered valid or not.
+//
 // To be considered valid, the associated request must satisfy two conditions:
 // the request did not end with an error, and
 // the HTTP response is neither a Client error nor a Server error.
