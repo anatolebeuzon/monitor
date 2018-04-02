@@ -38,8 +38,8 @@ func (w *Website) Poll(retainedResults int) {
 		tr.Error = err
 	} else {
 		tr.StatusCode = resp.StatusCode
+		resp.Body.Close()
 	}
-	// fmt.Println(tr)
 
 	w.SaveResult(&tr, retainedResults)
 }
