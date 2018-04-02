@@ -1,15 +1,15 @@
 {
   "Server": "127.0.0.1:1234",
-  "Statistics": [
-    {
+  "Statistics": {
+    "Left": {
       "Frequency": 2,
       "Timespan": 20
     },
-    {
+    "Right": {
       "Frequency": 10,
       "Timespan": 40
     }
-  ],
+  },
   "Alerts": {
     "Frequency": 4,
     "Timespan": 120

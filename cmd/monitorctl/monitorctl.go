@@ -15,7 +15,8 @@ func main() {
 	}
 
 	s := client.NewScheduler(config)
-	agg := s.Init()
-	d := client.NewDashboard(agg, s.UpdateUI)
+	store := client.NewStore()
+	s.Init(store)
+	d := client.NewDashboard(store, &config, s.UpdateUI)
 	d.Show()
 }

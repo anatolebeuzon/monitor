@@ -5,17 +5,11 @@ import (
 	"strconv"
 )
 
-// Store stores metrics data
+// Store contains all the data needed by the dashboard
 type Store struct {
-	Timespans Timespans
-	URLs      []string
-	Metrics   Metrics
-	Alerts    Alerts
-}
-
-type Timespans struct {
-	Order  []int
-	Lookup map[int]bool
+	URLs    []string
+	Metrics Metrics
+	Alerts  Alerts
 }
 
 // Metrics[url][timespan] will give the aggregatedMetric for the selected URL and timespan
@@ -25,10 +19,6 @@ type Alerts map[string][]payload.Alert
 
 func NewStore() *Store {
 	return &Store{
-		Timespans: Timespans{
-			Order:  []int{},
-			Lookup: make(map[int]bool),
-		},
 		URLs:    []string{},
 		Metrics: make(Metrics),
 		Alerts:  make(Alerts),

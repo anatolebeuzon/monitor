@@ -27,14 +27,13 @@ func NewScheduler(c Config) *Scheduler {
 	}
 }
 
-func (s *Scheduler) Init() *Store {
+func (s *Scheduler) Init(store *Store) {
 	// Create receiver
-	store := NewStore()
-
 	go s.receive(store)
 
 	// Launch stat check routines
-	for _, stat := range s.Config.Statistics {
+	c := &s.Config
+	for _, stat := range []Statistic{c.Statistics.Left, c.Statistics.Right} {
 		go func(stat Statistic) {
 			s.GetData(stat.Timespan)
 			for range time.Tick(time.Duration(stat.Frequency) * time.Second) {
@@ -45,26 +44,16 @@ func (s *Scheduler) Init() *Store {
 
 	// Launch alert check routine
 	go func() {
-		for range time.Tick(time.Duration(s.Config.Alerts.Frequency) * time.Second) {
-			s.GetAlerts(s.Config.Alerts.Timespan)
+		for range time.Tick(time.Duration(c.Alerts.Frequency) * time.Second) {
+			s.GetAlerts(c.Alerts.Timespan)
 		}
 	}()
-
-	return store
 }
 
 func (s *Scheduler) receive(store *Store) {
 	for {
 		select {
 		case stats := <-s.Received.stats:
-
-			// Check that timespan is registered
-			// TODO: do this while reading config, it makes no sense to do it here
-			if _, ok := store.Timespans.Lookup[stats.Timespan]; !ok {
-				store.Timespans.Lookup[stats.Timespan] = true
-				store.Timespans.Order = append(store.Timespans.Order, stats.Timespan)
-			}
-
 			for url, metric := range stats.Metrics {
 				// Check that URL is registered
 				if _, ok := store.Metrics[url]; !ok {

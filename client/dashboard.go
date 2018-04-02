@@ -18,12 +18,22 @@ type Dashboard struct {
 type DashboardPage struct {
 	Title   ui.Par
 	Counter ui.Par
-	Metrics ui.Par
+	Left    DashboardSide
+	Right   DashboardSide
 	Alerts  ui.Par
-	Bars    ui.BarChart
 }
 
-func NewDashboardPage() DashboardPage {
+type DashboardSide struct {
+	Timespan     int
+	Title        ui.Par
+	Availability ui.Gauge
+	TTFB         ui.Par
+	CodeCounts   ui.BarChart
+	Errors       ui.Par
+	Breakdown    ui.MBarChart
+}
+
+func NewDashboardPage(s *Store, c *Config) DashboardPage {
 	title := ui.NewPar("")
 	title.Height = 3
 
@@ -31,35 +41,70 @@ func NewDashboardPage() DashboardPage {
 	counter.Height = 3
 	counter.Border = false
 
-	metrics := ui.NewPar("")
-	metrics.Height = 20
-	metrics.BorderLabel = "Metrics"
-
 	alerts := ui.NewPar("")
-	alerts.Height = 20
-	alerts.BorderLabel = "Alerts"
-
-	bars := ui.NewBarChart()
-	bars.BorderLabel = "Response code counts"
-	bars.Height = 20
-	bars.TextColor = ui.ColorGreen
-	bars.BarColor = ui.ColorRed
-	bars.NumColor = ui.ColorYellow
+	alerts.Height = 15
+	alerts.BorderLabel = "Alerts (refreshed every " + strconv.Itoa(c.Alerts.Frequency) + "s)"
 
 	return DashboardPage{
 		Title:   *title,
 		Counter: *counter,
-		Metrics: *metrics,
+		Left:    NewDashboardSide(c.Statistics.Left, ui.ColorBlue),
+		Right:   NewDashboardSide(c.Statistics.Right, ui.ColorYellow),
 		Alerts:  *alerts,
-		Bars:    *bars,
 	}
 }
 
-func NewDashboard(s *Store, updateUI chan bool) (d Dashboard) {
+func NewDashboardSide(s Statistic, color ui.Attribute) DashboardSide {
+	text := "Aggregate over " + strconv.Itoa(s.Timespan) + "s"
+	text += " (refreshed every " + strconv.Itoa(s.Frequency) + "s)"
+	Title := ui.NewPar(text)
+	Title.Height = 1
+	Title.Border = false
+
+	Availability := ui.NewGauge()
+	Availability.BorderLabel = "Availability"
+	Availability.Height = 3
+	Availability.BorderFg = color
+
+	TTFB := ui.NewPar("")
+	TTFB.BorderLabel = "TTFBs"
+	TTFB.Height = 5
+	TTFB.BorderFg = color
+
+	CodeCounts := ui.NewBarChart()
+	CodeCounts.BorderLabel = "Response code counts"
+	CodeCounts.Height = 10
+	CodeCounts.BorderFg = color
+
+	Errors := ui.NewPar("")
+	Errors.BorderLabel = "Latest errors"
+	Errors.Height = 10
+	Errors.BorderFg = color
+
+	Breakdown := ui.NewMBarChart()
+	Breakdown.BorderLabel = "Request breakdown"
+	Breakdown.Height = 25
+	Breakdown.TextColor = ui.ColorGreen
+	Breakdown.BorderFg = color
+	// Breakdown.BarColor = ui.ColorRed
+	// Breakdown.NumColor = ui.ColorYellow
+
+	return DashboardSide{
+		Timespan:     s.Timespan,
+		Title:        *Title,
+		Availability: *Availability,
+		TTFB:         *TTFB,
+		CodeCounts:   *CodeCounts,
+		Errors:       *Errors,
+		Breakdown:    *Breakdown,
+	}
+}
+
+func NewDashboard(s *Store, c *Config, updateUI chan bool) (d Dashboard) {
 	return Dashboard{
 		store:      s,
 		currentIdx: 0,
-		page:       NewDashboardPage(),
+		page:       NewDashboardPage(s, c),
 		updateUI:   updateUI,
 	}
 }
@@ -81,8 +126,15 @@ func (d *Dashboard) Show() error {
 	// build layout
 	ui.Body.AddRows(
 		ui.NewRow(ui.NewCol(2, 5, &d.page.Title), ui.NewCol(1, 4, &d.page.Counter)),
-		ui.NewRow(ui.NewCol(12, 0, &d.page.Metrics)),
-		ui.NewRow(ui.NewCol(6, 0, &d.page.Alerts), ui.NewCol(6, 0, &d.page.Bars)),
+		ui.NewRow(ui.NewCol(4, 1, &d.page.Left.Title), ui.NewCol(4, 2, &d.page.Right.Title)),
+		ui.NewRow(ui.NewCol(6, 0, &d.page.Left.Availability), ui.NewCol(6, 0, &d.page.Right.Availability)),
+		ui.NewRow(
+			ui.NewCol(4, 0, &d.page.Left.TTFB, &d.page.Left.CodeCounts, &d.page.Left.Errors),
+			ui.NewCol(2, 0, &d.page.Left.Breakdown),
+			ui.NewCol(4, 0, &d.page.Right.TTFB, &d.page.Right.CodeCounts, &d.page.Right.Errors),
+			ui.NewCol(2, 0, &d.page.Right.Breakdown),
+		),
+		ui.NewRow(ui.NewCol(12, 0, &d.page.Alerts)),
 	)
 	ui.Body.Align()
 
@@ -106,13 +158,36 @@ func (d *Dashboard) Render() {
 func (p *DashboardPage) Refresh(currentIdx int, s Store) {
 	url := s.URLs[currentIdx]
 	p.Title.Text = url
-	p.Counter.Text = strconv.Itoa(currentIdx+1) + "/" + strconv.Itoa(len(s.URLs))
-	p.Metrics.Text = s.Metrics.String(url, s.Timespans.Order)
+	p.Counter.Text = "Page " + strconv.Itoa(currentIdx+1) + "/" + strconv.Itoa(len(s.URLs))
 	p.Alerts.Text = s.Alerts.String(url)
-	// test, _ := ExtractFromMap(s.Metrics[url][0].StatusCodeCounts)
-	// p.Alerts.Text = fmt.Sprintf("%v", s.Metrics[url][s.Timespans.Order[0]].StatusCodeCounts)
-	p.Bars.Data, p.Bars.DataLabels = GenerateBarChart(s.Metrics[url][s.Timespans.Order[0]])
-	// p.Bars.Data, p.Bars.DataLabels = []int{16, 18, 13}, []string{"hi", "he", "ha"}
+	p.Left.Refresh(s.Metrics[url][p.Left.Timespan])
+	p.Right.Refresh(s.Metrics[url][p.Right.Timespan])
+}
+
+func (s *DashboardSide) Refresh(m payload.Metric) {
+
+	// Update availability gauge
+	s.Availability.Percent = int(m.Availability * 100)
+
+	// Update color of the availability gauge
+	avail := s.Availability.Percent
+	if avail > 90 {
+		s.Availability.BarColor = ui.ColorGreen
+	} else if avail > 80 {
+		s.Availability.BarColor = ui.ColorYellow
+	} else {
+		s.Availability.BarColor = ui.ColorRed
+	}
+
+	// Update errors list
+	s.Errors.Text = "" // Reset ErrorCounts text
+	for err, c := range m.ErrorCounts {
+		s.Errors.Text += err + " (" + strconv.Itoa(c) + " times)\n"
+	}
+
+	// s.Counter.Text = strconv.Itoa(currentIdx+1) + "/" + strconv.Itoa(len(s.URLs))
+	// s.Metrics.Text = s.Metrics.String(url, s.Timespans.Order)
+	s.CodeCounts.Data, s.CodeCounts.DataLabels = GenerateBarChart(m)
 }
 
 func (d *Dashboard) RegisterEventHandlers() {
