@@ -1,7 +1,10 @@
 package client
 
 import (
+	"monitor/payload"
+	"sort"
 	"strconv"
+	"time"
 
 	ui "github.com/gizak/termui"
 )
@@ -17,9 +20,9 @@ type DashboardSide struct {
 }
 
 func NewDashboardSide(s Statistic, color ui.Attribute) DashboardSide {
-	text := "Aggregated over " + strconv.Itoa(s.Timespan) + "s"
-	text += " (refreshed every " + strconv.Itoa(s.Frequency) + "s)"
-	Title := ui.NewPar(text)
+	Title := ui.NewPar("")
+	Title.Text = "Aggregated over " + strconv.Itoa(s.Timespan) + "s"
+	Title.Text += " (refreshed every " + strconv.Itoa(s.Frequency) + "s)"
 	Title.Height = 1
 	Title.Border = false
 
@@ -32,8 +35,8 @@ func NewDashboardSide(s Statistic, color ui.Attribute) DashboardSide {
 	Breakdown.BorderLabel = "Request breakdown"
 	Breakdown.Rows = [][]string{
 		[]string{"", "DNS", "TCP", "TLS", "Srv Process", "TTFB", "Transfer", "Response"},
-		[]string{},
-		[]string{},
+		[]string{}, // average values ; will be populated during render
+		[]string{}, // max values 	  ; same
 	}
 	Breakdown.FgColor = ui.ColorWhite
 	Breakdown.BgColor = ui.ColorDefault
@@ -71,7 +74,6 @@ func NewDashboardSide(s Statistic, color ui.Attribute) DashboardSide {
 }
 
 func (s *DashboardSide) Refresh(m Metric) {
-
 	// Update availability gauge
 	s.Availability.Percent = int(m.Latest.Availability * 100)
 
@@ -100,4 +102,43 @@ func (s *DashboardSide) Refresh(m Metric) {
 	for err, c := range m.Latest.ErrorCounts {
 		s.Errors.Text += err + " (" + strconv.Itoa(c) + " times)\n"
 	}
+}
+
+func ExtractResponseCounts(m payload.Metric) (values []int, labels []string) {
+	var keys sort.IntSlice
+	for key := range m.StatusCodeCounts {
+		keys = append(keys, key)
+	}
+	keys.Sort()
+
+	for _, key := range keys {
+		values = append(values, m.StatusCodeCounts[key])
+		labels = append(labels, strconv.Itoa(key))
+	}
+
+	labels = append(labels, "err")
+	values = append(values, Count(m.ErrorCounts))
+	return
+}
+
+func Count(errors map[string]int) (c int) {
+	for _, i := range errors {
+		c += i
+	}
+	return
+}
+
+func ToString(prefix string, d []time.Duration) (s []string) {
+	s = append(s, prefix)
+	for _, duration := range d {
+		s = append(s, duration.Round(time.Millisecond).String())
+	}
+	return
+}
+
+func ToFloat64(d []time.Duration) (f []float64) {
+	for _, duration := range d {
+		f = append(f, float64(duration/time.Millisecond)/1000)
+	}
+	return
 }

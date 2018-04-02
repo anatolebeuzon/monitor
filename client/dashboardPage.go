@@ -15,24 +15,24 @@ type DashboardPage struct {
 }
 
 func NewDashboardPage(s *Store, c *Config) DashboardPage {
-	title := ui.NewPar("")
-	title.Height = 3
+	Title := ui.NewPar("")
+	Title.Height = 3
 
-	counter := ui.NewPar("")
-	counter.Height = 3
-	counter.Border = false
+	Counter := ui.NewPar("")
+	Counter.Height = 3
+	Counter.Border = false
 
-	alerts := ui.NewPar("")
-	alerts.Height = 15
-	alerts.BorderLabel = "Alerts (aggregated over " + strconv.Itoa(c.Alerts.Timespan) + "s, "
-	alerts.BorderLabel += "refreshed every " + strconv.Itoa(c.Alerts.Frequency) + "s)"
+	Alerts := ui.NewPar("")
+	Alerts.Height = 15
+	Alerts.BorderLabel = "Alerts (aggregated over " + strconv.Itoa(c.Alerts.Timespan) + "s, "
+	Alerts.BorderLabel += "refreshed every " + strconv.Itoa(c.Alerts.Frequency) + "s)"
 
 	return DashboardPage{
-		Title:   *title,
-		Counter: *counter,
+		Title:   *Title,
+		Counter: *Counter,
 		Left:    NewDashboardSide(c.Statistics.Left, ui.ColorBlue),
 		Right:   NewDashboardSide(c.Statistics.Right, ui.ColorYellow),
-		Alerts:  *alerts,
+		Alerts:  *Alerts,
 	}
 }
 

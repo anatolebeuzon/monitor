@@ -1,11 +1,6 @@
 package client
 
 import (
-	"monitor/payload"
-	"sort"
-	"strconv"
-	"time"
-
 	ui "github.com/gizak/termui"
 )
 
@@ -95,50 +90,4 @@ func (d *Dashboard) RegisterEventHandlers() {
 			d.updateUI <- true
 		}
 	})
-}
-
-func ExtractResponseCounts(m payload.Metric) (values []int, labels []string) {
-	var keys sort.IntSlice
-	for key := range m.StatusCodeCounts {
-		keys = append(keys, key)
-	}
-	keys.Sort()
-
-	for _, key := range keys {
-		values = append(values, m.StatusCodeCounts[key])
-		labels = append(labels, strconv.Itoa(key))
-	}
-
-	labels = append(labels, "err")
-	values = append(values, Count(m.ErrorCounts))
-	return
-}
-
-func Count(errors map[string]int) (c int) {
-	for _, i := range errors {
-		c += i
-	}
-	return
-}
-
-func ToString(prefix string, d []time.Duration) (s []string) {
-	s = append(s, prefix)
-	for _, duration := range d {
-		s = append(s, duration.Round(time.Millisecond).String())
-	}
-	return
-}
-
-func ToInt(d []time.Duration) (i []int) {
-	for _, duration := range d {
-		i = append(i, int(duration/time.Millisecond))
-	}
-	return
-}
-
-func ToFloat64(d []time.Duration) (f []float64) {
-	for _, duration := range d {
-		f = append(f, float64(duration/time.Millisecond)/1000)
-	}
-	return
 }
