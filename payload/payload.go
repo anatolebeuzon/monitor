@@ -60,8 +60,16 @@ type Timing struct {
 	// TTFB is the time to first byte.
 	// It is equal to the sum of all the previous durations.
 	TTFB time.Duration
+
+	// Transfer is the transfer time of the response.
+	// It starts when the first byte is received and ends when the last byte is received.
+	Transfer time.Duration
+
+	// Response is the response time.
+	// It is equal to the sum of the TTFB and the Transfer time.
+	Response time.Duration
 }
 
 func (t *Timing) ToSlice() []time.Duration {
-	return []time.Duration{t.DNS, t.TCP, t.TLS, t.Server, t.TTFB}
+	return []time.Duration{t.DNS, t.TCP, t.TLS, t.Server, t.TTFB, t.Transfer, t.Response}
 }

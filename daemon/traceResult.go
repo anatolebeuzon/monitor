@@ -66,29 +66,38 @@ func (t TraceResults) TTFBs(startIdx int) (durations []time.Duration) {
 
 func (t TraceResults) Average(startIdx int) (avg payload.Timing) {
 	for i := startIdx; i < len(t); i++ {
-		avg.DNS += t[i].Timing.DNS
-		avg.TCP += t[i].Timing.TCP
-		avg.TLS += t[i].Timing.TLS
-		avg.Server += t[i].Timing.Server
-		avg.TTFB += t[i].Timing.TTFB
+		curr := t[i].Timing
+		avg.DNS += curr.DNS
+		avg.TCP += curr.TCP
+		avg.TLS += curr.TLS
+		avg.Server += curr.Server
+		avg.TTFB += curr.TTFB
+		avg.Transfer += curr.Transfer
+		avg.Response += curr.Response
 	}
 	if len(t)-startIdx != 0 {
-		avg.DNS /= time.Duration(len(t) - startIdx)
-		avg.TCP /= time.Duration(len(t) - startIdx)
-		avg.TLS /= time.Duration(len(t) - startIdx)
-		avg.Server /= time.Duration(len(t) - startIdx)
-		avg.TTFB /= time.Duration(len(t) - startIdx)
+		tmp := time.Duration(len(t) - startIdx)
+		avg.DNS /= tmp
+		avg.TCP /= tmp
+		avg.TLS /= tmp
+		avg.Server /= tmp
+		avg.TTFB /= tmp
+		avg.Transfer /= tmp
+		avg.Response /= tmp
 	}
 	return
 }
 
 func (t TraceResults) Max(startIdx int) (max payload.Timing) {
 	for i := startIdx; i < len(t); i++ {
-		max.DNS = maxDuration(t[i].Timing.DNS, max.DNS)
-		max.TCP = maxDuration(t[i].Timing.TCP, max.TCP)
-		max.TLS = maxDuration(t[i].Timing.TLS, max.TLS)
-		max.Server = maxDuration(t[i].Timing.Server, max.Server)
-		max.TTFB = maxDuration(t[i].Timing.TTFB, max.TTFB)
+		curr := t[i].Timing
+		max.DNS = maxDuration(curr.DNS, max.DNS)
+		max.TCP = maxDuration(curr.TCP, max.TCP)
+		max.TLS = maxDuration(curr.TLS, max.TLS)
+		max.Server = maxDuration(curr.Server, max.Server)
+		max.TTFB = maxDuration(curr.TTFB, max.TTFB)
+		max.Transfer = maxDuration(curr.Transfer, max.Transfer)
+		max.Response = maxDuration(curr.Response, max.Response)
 	}
 	return
 }

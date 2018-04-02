@@ -2,6 +2,7 @@ package agent
 
 import (
 	"fmt"
+	"io/ioutil"
 	"net"
 	"net/http"
 	"net/http/httptrace"
@@ -28,7 +29,7 @@ func (w *Website) Poll(retainedResults int) {
 		return
 	}
 
-	var t0, t1, t2, t3, t4, t5 time.Time
+	var t0, t1, t2, t3, t4, t5, t6 time.Time
 
 	trace := &httptrace.ClientTrace{
 		DNSStart:             func(_ httptrace.DNSStartInfo) { t0 = time.Now() },
@@ -39,23 +40,26 @@ func (w *Website) Poll(retainedResults int) {
 		GotFirstResponseByte: func() { t5 = time.Now() },
 	}
 
+	var tr TraceResult
 	req = req.WithContext(httptrace.WithClientTrace(req.Context(), trace))
 	resp, err := NewTransport().RoundTrip(req)
+	if err != nil {
+		tr.Error = err
+	} else {
+		tr.StatusCode = resp.StatusCode
+		ioutil.ReadAll(resp.Body)
+		resp.Body.Close()
+	}
+	t6 = time.Now() // body has been read, response is over
 
-	var tr TraceResult
 	tr.Date = t5
 	tr.Timing.DNS = t1.Sub(t0)
 	tr.Timing.TCP = t3.Sub(t2)
 	tr.Timing.TLS = t4.Sub(t3)
 	tr.Timing.Server = t5.Sub(t4)
+	tr.Timing.Transfer = t6.Sub(t5)
 	tr.Timing.TTFB = t5.Sub(t0)
-
-	if err != nil {
-		tr.Error = err
-	} else {
-		tr.StatusCode = resp.StatusCode
-		resp.Body.Close()
-	}
+	tr.Timing.Response = t6.Sub(t0)
 
 	w.SaveResult(&tr, retainedResults)
 }

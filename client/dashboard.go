@@ -85,14 +85,14 @@ func NewDashboardSide(s Statistic, color ui.Attribute) DashboardSide {
 	Breakdown := ui.NewTable()
 	Breakdown.BorderLabel = "Request breakdown"
 	Breakdown.Rows = [][]string{
-		[]string{"", "DNS lookup", "TCP connection", "TLS handshake", "Server processing", "Total (TTFB)"},
+		[]string{"", "DNS", "TCP", "TLS", "Srv Processq", "TTFB", "Transfer", "Response"},
 		[]string{},
 		[]string{},
 	}
 	Breakdown.FgColor = ui.ColorWhite
 	Breakdown.BgColor = ui.ColorDefault
 	Breakdown.BorderFg = color
-	Breakdown.Height = 10
+	Breakdown.Height = 5
 	Breakdown.TextAlign = ui.AlignCenter
 	Breakdown.Separator = false
 
