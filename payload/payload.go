@@ -57,13 +57,13 @@ type Timing struct {
 	// deliver the first response byte since a connection was established.
 	Server time.Duration
 
-	// TTFB is the time to first byte.
-	// It is equal to the sum of all the previous durations.
-	TTFB time.Duration
-
 	// Transfer is the transfer time of the response.
 	// It starts when the first byte is received and ends when the last byte is received.
 	Transfer time.Duration
+
+	// TTFB is the time to first byte.
+	// It is equal to the sum of all the previous durations except the Transfer time.
+	TTFB time.Duration
 
 	// Response is the response time.
 	// It is equal to the sum of the TTFB and the Transfer time.

@@ -28,10 +28,9 @@ type DashboardSide struct {
 	Timespan     int
 	Title        ui.Par
 	Availability ui.Gauge
-	TTFB         ui.Par
+	Breakdown    ui.Table
 	CodeCounts   ui.BarChart
 	Errors       ui.Par
-	Breakdown    ui.Table
 }
 
 func NewDashboardPage(s *Store, c *Config) DashboardPage {
@@ -67,25 +66,10 @@ func NewDashboardSide(s Statistic, color ui.Attribute) DashboardSide {
 	Availability.Height = 3
 	Availability.BorderFg = color
 
-	TTFB := ui.NewPar("")
-	TTFB.BorderLabel = "TTFBs"
-	TTFB.Height = 5
-	TTFB.BorderFg = color
-
-	CodeCounts := ui.NewBarChart()
-	CodeCounts.BorderLabel = "Response code counts"
-	CodeCounts.Height = 25
-	CodeCounts.BorderFg = color
-
-	Errors := ui.NewPar("")
-	Errors.BorderLabel = "Latest errors"
-	Errors.Height = 10
-	Errors.BorderFg = color
-
 	Breakdown := ui.NewTable()
 	Breakdown.BorderLabel = "Request breakdown"
 	Breakdown.Rows = [][]string{
-		[]string{"", "DNS", "TCP", "TLS", "Srv Processq", "TTFB", "Transfer", "Response"},
+		[]string{"", "DNS", "TCP", "TLS", "Srv Process", "TTFB", "Transfer", "Response"},
 		[]string{},
 		[]string{},
 	}
@@ -96,14 +80,23 @@ func NewDashboardSide(s Statistic, color ui.Attribute) DashboardSide {
 	Breakdown.TextAlign = ui.AlignCenter
 	Breakdown.Separator = false
 
+	Errors := ui.NewPar("")
+	Errors.BorderLabel = "Latest errors"
+	Errors.Height = 10
+	Errors.BorderFg = color
+
+	CodeCounts := ui.NewBarChart()
+	CodeCounts.BorderLabel = "Response code counts"
+	CodeCounts.Height = 10
+	CodeCounts.BorderFg = color
+
 	return DashboardSide{
 		Timespan:     s.Timespan,
 		Title:        *Title,
 		Availability: *Availability,
-		TTFB:         *TTFB,
+		Breakdown:    *Breakdown,
 		CodeCounts:   *CodeCounts,
 		Errors:       *Errors,
-		Breakdown:    *Breakdown,
 	}
 }
 
@@ -136,8 +129,8 @@ func (d *Dashboard) Show() error {
 		ui.NewRow(ui.NewCol(4, 1, &d.page.Left.Title), ui.NewCol(4, 2, &d.page.Right.Title)),
 		ui.NewRow(ui.NewCol(6, 0, &d.page.Left.Availability), ui.NewCol(6, 0, &d.page.Right.Availability)),
 		ui.NewRow(
-			ui.NewCol(6, 0, &d.page.Left.TTFB, &d.page.Left.Breakdown, &d.page.Left.Errors),
-			ui.NewCol(6, 0, &d.page.Right.TTFB, &d.page.Right.Breakdown, &d.page.Right.Errors),
+			ui.NewCol(6, 0, &d.page.Left.Breakdown, &d.page.Left.CodeCounts, &d.page.Left.Errors),
+			ui.NewCol(6, 0, &d.page.Right.Breakdown, &d.page.Right.CodeCounts, &d.page.Right.Errors),
 		),
 		ui.NewRow(ui.NewCol(12, 0, &d.page.Alerts)),
 	)
@@ -184,20 +177,18 @@ func (s *DashboardSide) Refresh(m payload.Metric) {
 		s.Availability.BarColor = ui.ColorRed
 	}
 
+	// Update request timing breakdown
+	s.Breakdown.Rows[1] = ToString("Avg", m.Average.ToSlice())
+	s.Breakdown.Rows[2] = ToString("Max", m.Max.ToSlice())
+
+	// Update code counts
+	s.CodeCounts.Data, s.CodeCounts.DataLabels = ExtractResponseCounts(m)
+
 	// Update errors list
 	s.Errors.Text = "" // Reset ErrorCounts text
 	for err, c := range m.ErrorCounts {
 		s.Errors.Text += err + " (" + strconv.Itoa(c) + " times)\n"
 	}
-
-	// Update TTFB stats
-	s.TTFB.Text = "Average: " + m.Average.TTFB.String()
-
-	// Update request timing breakdown
-	s.Breakdown.Rows[1] = ToString("Avg", m.Average.ToSlice())
-	s.Breakdown.Rows[2] = ToString("Max", m.Max.ToSlice())
-
-	s.CodeCounts.Data, s.CodeCounts.DataLabels = ExtractResponseCounts(m)
 }
 
 func (d *Dashboard) RegisterEventHandlers() {

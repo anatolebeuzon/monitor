@@ -49,10 +49,28 @@ func (w *Website) Poll(retainedResults int) {
 		tr.StatusCode = resp.StatusCode
 		ioutil.ReadAll(resp.Body)
 		resp.Body.Close()
+		t6 = time.Now() // body has been read, response is over
 	}
-	t6 = time.Now() // body has been read, response is over
 
-	tr.Date = t5
+	// If an error occured, some times may still be at 0
+	// However, they must be handled to avoid getting absurd results
+	if t2.IsZero() {
+		t2 = t1
+	}
+	if t3.IsZero() {
+		t3 = t2
+	}
+	if t4.IsZero() {
+		t4 = t3
+	}
+	if t5.IsZero() {
+		t5 = t4
+	}
+	if t6.IsZero() {
+		t6 = t5
+	}
+
+	tr.Date = t0
 	tr.Timing.DNS = t1.Sub(t0)
 	tr.Timing.TCP = t3.Sub(t2)
 	tr.Timing.TLS = t4.Sub(t3)
@@ -61,6 +79,7 @@ func (w *Website) Poll(retainedResults int) {
 	tr.Timing.TTFB = t5.Sub(t0)
 	tr.Timing.Response = t6.Sub(t0)
 
+	fmt.Println(tr)
 	w.SaveResult(&tr, retainedResults)
 }
 
