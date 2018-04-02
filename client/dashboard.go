@@ -30,6 +30,7 @@ type DashboardSide struct {
 	Availability ui.Gauge
 	Breakdown    ui.Table
 	CodeCounts   ui.BarChart
+	RespHist     ui.LineChart
 	Errors       ui.Par
 }
 
@@ -80,15 +81,22 @@ func NewDashboardSide(s Statistic, color ui.Attribute) DashboardSide {
 	Breakdown.TextAlign = ui.AlignCenter
 	Breakdown.Separator = false
 
-	Errors := ui.NewPar("")
-	Errors.BorderLabel = "Latest errors"
-	Errors.Height = 10
-	Errors.BorderFg = color
-
 	CodeCounts := ui.NewBarChart()
 	CodeCounts.BorderLabel = "Response code counts"
 	CodeCounts.Height = 10
 	CodeCounts.BorderFg = color
+
+	RespHist := ui.NewLineChart()
+	RespHist.BorderLabel = "Average response time evolution"
+	RespHist.Height = 10
+	RespHist.BorderFg = color
+	RespHist.Mode = "dot"
+	RespHist.DotStyle = '+'
+
+	Errors := ui.NewPar("")
+	Errors.BorderLabel = "Latest errors"
+	Errors.Height = 10
+	Errors.BorderFg = color
 
 	return DashboardSide{
 		Timespan:     s.Timespan,
@@ -96,6 +104,7 @@ func NewDashboardSide(s Statistic, color ui.Attribute) DashboardSide {
 		Availability: *Availability,
 		Breakdown:    *Breakdown,
 		CodeCounts:   *CodeCounts,
+		RespHist:     *RespHist,
 		Errors:       *Errors,
 	}
 }
@@ -127,10 +136,18 @@ func (d *Dashboard) Show() error {
 	ui.Body.AddRows(
 		ui.NewRow(ui.NewCol(2, 5, &d.page.Title), ui.NewCol(1, 4, &d.page.Counter)),
 		ui.NewRow(ui.NewCol(4, 1, &d.page.Left.Title), ui.NewCol(4, 2, &d.page.Right.Title)),
-		ui.NewRow(ui.NewCol(6, 0, &d.page.Left.Availability), ui.NewCol(6, 0, &d.page.Right.Availability)),
 		ui.NewRow(
-			ui.NewCol(6, 0, &d.page.Left.Breakdown, &d.page.Left.CodeCounts, &d.page.Left.Errors),
-			ui.NewCol(6, 0, &d.page.Right.Breakdown, &d.page.Right.CodeCounts, &d.page.Right.Errors),
+			ui.NewCol(6, 0, &d.page.Left.Availability, &d.page.Left.Breakdown),
+			ui.NewCol(6, 0, &d.page.Right.Availability, &d.page.Right.Breakdown)),
+		ui.NewRow(
+			ui.NewCol(3, 0, &d.page.Left.CodeCounts),
+			ui.NewCol(3, 0, &d.page.Left.RespHist),
+			ui.NewCol(3, 0, &d.page.Right.CodeCounts),
+			ui.NewCol(3, 0, &d.page.Right.RespHist),
+		),
+		ui.NewRow(
+			ui.NewCol(6, 0, &d.page.Left.Errors),
+			ui.NewCol(6, 0, &d.page.Right.Errors),
 		),
 		ui.NewRow(ui.NewCol(12, 0, &d.page.Alerts)),
 	)
@@ -162,31 +179,34 @@ func (p *DashboardPage) Refresh(currentIdx int, s Store) {
 	p.Right.Refresh(s.Metrics[url][p.Right.Timespan])
 }
 
-func (s *DashboardSide) Refresh(m payload.Metric) {
+func (s *DashboardSide) Refresh(m Metric) {
 
 	// Update availability gauge
-	s.Availability.Percent = int(m.Availability * 100)
+	s.Availability.Percent = int(m.Latest.Availability * 100)
 
 	// Update color of the availability gauge
 	avail := s.Availability.Percent
 	if avail > 90 {
 		s.Availability.BarColor = ui.ColorGreen
-	} else if avail > 80 {
+	} else if avail > 70 {
 		s.Availability.BarColor = ui.ColorYellow
 	} else {
 		s.Availability.BarColor = ui.ColorRed
 	}
 
 	// Update request timing breakdown
-	s.Breakdown.Rows[1] = ToString("Avg", m.Average.ToSlice())
-	s.Breakdown.Rows[2] = ToString("Max", m.Max.ToSlice())
+	s.Breakdown.Rows[1] = ToString("Avg", m.Latest.Average.ToSlice())
+	s.Breakdown.Rows[2] = ToString("Max", m.Latest.Max.ToSlice())
 
 	// Update code counts
-	s.CodeCounts.Data, s.CodeCounts.DataLabels = ExtractResponseCounts(m)
+	s.CodeCounts.Data, s.CodeCounts.DataLabels = ExtractResponseCounts(m.Latest)
+
+	// Update response history
+	s.RespHist.Data = ToFloat64(m.AvgRespHist)
 
 	// Update errors list
 	s.Errors.Text = "" // Reset ErrorCounts text
-	for err, c := range m.ErrorCounts {
+	for err, c := range m.Latest.ErrorCounts {
 		s.Errors.Text += err + " (" + strconv.Itoa(c) + " times)\n"
 	}
 }
@@ -239,6 +259,20 @@ func ToString(prefix string, d []time.Duration) (s []string) {
 	s = append(s, prefix)
 	for _, duration := range d {
 		s = append(s, duration.Round(time.Millisecond).String())
+	}
+	return
+}
+
+func ToInt(d []time.Duration) (i []int) {
+	for _, duration := range d {
+		i = append(i, int(duration/time.Millisecond))
+	}
+	return
+}
+
+func ToFloat64(d []time.Duration) (f []float64) {
+	for _, duration := range d {
+		f = append(f, float64(duration/time.Millisecond)/1000)
 	}
 	return
 }

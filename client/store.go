@@ -3,6 +3,7 @@ package client
 import (
 	"monitor/payload"
 	"strconv"
+	"time"
 )
 
 // Store contains all the data needed by the dashboard
@@ -13,7 +14,13 @@ type Store struct {
 }
 
 // Metrics[url][timespan] will give the aggregatedMetric for the selected URL and timespan
-type Metrics map[string]map[int]payload.Metric
+type Metrics map[string]map[int]Metric
+
+type Metric struct {
+	Latest payload.Metric
+	// AvgRespHist stores the history of the average response times
+	AvgRespHist []time.Duration
+}
 
 type Alerts map[string][]payload.Alert
 

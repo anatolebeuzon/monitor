@@ -57,10 +57,22 @@ func (s *Scheduler) receive(store *Store) {
 			for url, metric := range stats.Metrics {
 				// Check that URL is registered
 				if _, ok := store.Metrics[url]; !ok {
-					store.Metrics[url] = make(map[int]payload.Metric)
+					store.Metrics[url] = make(map[int]Metric)
 					store.URLs = append(store.URLs, url)
 				}
-				store.Metrics[url][stats.Timespan] = metric
+
+				history := store.Metrics[url][stats.Timespan].AvgRespHist
+				start := 0
+				itemsToKeep := 30
+				if len(history) >= itemsToKeep {
+					start = len(history) - itemsToKeep + 1
+				}
+				history = append(history[start:], metric.Average.Response)
+
+				store.Metrics[url][stats.Timespan] = Metric{
+					Latest:      metric,
+					AvgRespHist: history,
+				}
 			}
 			s.UpdateUI <- true
 
