@@ -1,5 +1,5 @@
 /*
-OK
+OK, except for non-uniform doc info about "startIdx"
 
 This file contains the polling logic, namely:
 - how and when websites are polled

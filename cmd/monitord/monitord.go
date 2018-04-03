@@ -1,6 +1,6 @@
 /*
-monitord is a daemon that polls websites and gather related metrics.
-Those metrics are accessible through an RPC API.
+monitord is a daemon that polls websites, gather related metrics,
+and publishes them through an RPC API.
 
 Usage :
 	monitord [-config path]
@@ -10,7 +10,7 @@ a file named config.json in the current directory.
 
 Note that monitord's config file is different from monitorctl's.
 
-Sample config file:
+Sample JSON config file:
 
 	{
 		"ListeningPort": 1234, 			// the port on which the RPC server listens
