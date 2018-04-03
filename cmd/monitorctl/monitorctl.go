@@ -1,15 +1,28 @@
+/*
+monitorctl is a client for the monitord daemon.
+It displays website statistics and alerts on a console dashboard.
+
+Usage :
+	monitorctl [-config path]
+where path is the relative path to the config file of the client.
+If the config flag is not provided, monitorctl will look for
+a file named config.json in the current directory.
+
+Note that monitorctl's config file is different from monitord's.
+*/
 package main
 
 import (
+	"flag"
 	"log"
 	"monitor/client"
 )
 
-const configPath = "config.json"
-
 func main() {
 	// Load config
-	config, err := client.ReadConfig(configPath)
+	configPath := flag.String("config", "config.json", "Config file in JSON format")
+	flag.Parse()
+	config, err := client.ReadConfig(*configPath)
 	if err != nil {
 		log.Fatal(err)
 	}
