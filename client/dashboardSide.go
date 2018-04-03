@@ -128,7 +128,7 @@ func ExtractResponseCounts(m payload.Metric) (codeCounts []int, codeNames []stri
 	}
 
 	// Append client (non-HTTP) error count at the end
-	codeNames = append(labels, "err")
+	codeNames = append(codeNames, "err")
 	codeCounts = append(codeCounts, Count(m.ErrorCounts))
 
 	return
