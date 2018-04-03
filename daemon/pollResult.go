@@ -70,7 +70,12 @@ func (p PollResults) StartIndexFor(timespan int) int {
 	return 0
 }
 
+// Average returns a payload.Timing, in which each duration (DNS, TCP, TLS...)
+// is the average of the respective durations of the selected poll results
+// (here, "selected" poll results refer to the poll results from index startIdx onwards).
 func (p PollResults) Average(startIdx int) (avg payload.Timing) {
+
+	// Perform an attribute-wise sum of durations
 	for i := startIdx; i < len(p); i++ {
 		curr := p[i].Timing
 		avg.DNS += curr.DNS
@@ -81,6 +86,8 @@ func (p PollResults) Average(startIdx int) (avg payload.Timing) {
 		avg.Transfer += curr.Transfer
 		avg.Response += curr.Response
 	}
+
+	// Divide by the number of elements to get the average
 	if len(p)-startIdx != 0 {
 		tmp := time.Duration(len(p) - startIdx)
 		avg.DNS /= tmp
@@ -91,9 +98,13 @@ func (p PollResults) Average(startIdx int) (avg payload.Timing) {
 		avg.Transfer /= tmp
 		avg.Response /= tmp
 	}
+
 	return
 }
 
+// Max returns a payload.Timing, in which each duration (DNS, TCP, TLS...)
+// is the maximum of the respective durations of the selected poll results
+// (here, "selected" poll results refer to the poll results from index startIdx onwards).
 func (p PollResults) Max(startIdx int) (max payload.Timing) {
 	for i := startIdx; i < len(p); i++ {
 		curr := p[i].Timing
@@ -108,6 +119,7 @@ func (p PollResults) Max(startIdx int) (max payload.Timing) {
 	return
 }
 
+// maxDuration returns the maximum duration of two durations.
 func maxDuration(d1, d2 time.Duration) time.Duration {
 	if d1 > d2 {
 		return d1
@@ -142,9 +154,16 @@ func (p PollResults) CountErrors(startIdx int) map[string]int {
 	return errorsCount
 }
 
-// Availability returns the availability based on the latest poll results, starting from startIdx.
-// The return value is between 0 and 1.
+// Availability returns the average availability based on the latest poll results,
+// starting from startIdx. The return value is between 0 and 1.
 func (p PollResults) Availability(startIdx int) float64 {
+	if len(p)-startIdx == 0 {
+		// No recent enough poll result is available, so
+		// we cannot know whether the website is up or down.
+		// In this case, act as if the website is down.
+		return float64(0)
+	}
+
 	c := 0
 	for i := startIdx; i < len(p); i++ {
 		if p[i].IsValid() {

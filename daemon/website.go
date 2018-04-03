@@ -11,7 +11,6 @@ import (
 )
 
 type Website struct {
-	// Hostname string
 	URL         string
 	PollResults PollResults
 
@@ -22,7 +21,7 @@ type Website struct {
 	DownAlertSent bool
 }
 
-// Poll makes a GET request to a website, and measures response times and response codes.
+// Poll makes a GET request to a website, measures response times and response codes.
 func (w *Website) Poll(retainedResults int) {
 	req, err := http.NewRequest("GET", w.URL, nil)
 	if err != nil {
@@ -30,15 +29,14 @@ func (w *Website) Poll(retainedResults int) {
 		return
 	}
 
-	var t0, t1, t2, t3, t4, t5, t6 time.Time
-
+	var t [7]time.Time
 	trace := &httptrace.ClientTrace{
-		DNSStart:             func(_ httptrace.DNSStartInfo) { t0 = time.Now() },
-		DNSDone:              func(_ httptrace.DNSDoneInfo) { t1 = time.Now() },
-		ConnectStart:         func(_, _ string) { t2 = time.Now() },
-		ConnectDone:          func(_, _ string, err error) { t3 = time.Now() }, // TODO: handle err?
-		GotConn:              func(_ httptrace.GotConnInfo) { t4 = time.Now() },
-		GotFirstResponseByte: func() { t5 = time.Now() },
+		DNSStart:             func(_ httptrace.DNSStartInfo) { t[0] = time.Now() },
+		DNSDone:              func(_ httptrace.DNSDoneInfo) { t[1] = time.Now() },
+		ConnectStart:         func(_, _ string) { t[2] = time.Now() },
+		ConnectDone:          func(_, _ string, err error) { t[3] = time.Now() }, // TODO: handle err?
+		GotConn:              func(_ httptrace.GotConnInfo) { t[4] = time.Now() },
+		GotFirstResponseByte: func() { t[5] = time.Now() },
 	}
 
 	var p PollResult
@@ -50,40 +48,51 @@ func (w *Website) Poll(retainedResults int) {
 		p.StatusCode = resp.StatusCode
 		ioutil.ReadAll(resp.Body)
 		resp.Body.Close()
-		t6 = time.Now() // body has been read, response is over
+		t[6] = time.Now() // body has been read, response is over
 	}
 
 	// If an error occured, some times may still be at 0
-	// However, they must be handled to avoid getting absurd results
-	if t2.IsZero() {
-		t2 = t1
+	// However, they must be set to a sensible time to avoid getting absurd results
+	if t[0].IsZero() {
+		t[0] = time.Now()
 	}
-	if t3.IsZero() {
-		t3 = t2
-	}
-	if t4.IsZero() {
-		t4 = t3
-	}
-	if t5.IsZero() {
-		t5 = t4
-	}
-	if t6.IsZero() {
-		t6 = t5
+	for i := range t {
+		if (i > 0) && t[i].IsZero() {
+			t[i] = t[i-1]
+		}
 	}
 
-	p.Date = t0
+	p.Date = t[0]
 	p.Timing = payload.Timing{
-		DNS:      t1.Sub(t0),
-		TCP:      t3.Sub(t2),
-		TLS:      t4.Sub(t3),
-		Server:   t5.Sub(t4),
-		Transfer: t6.Sub(t5),
-		TTFB:     t5.Sub(t0),
-		Response: t6.Sub(t0),
+		DNS:      t[1].Sub(t[0]),
+		TCP:      t[3].Sub(t[2]),
+		TLS:      t[4].Sub(t[3]),
+		Server:   t[5].Sub(t[4]),
+		Transfer: t[6].Sub(t[5]),
+		TTFB:     t[5].Sub(t[0]),
+		Response: t[6].Sub(t[0]),
 	}
 
-	fmt.Println(p)
+	// fmt.Println(p)
 	w.SaveResult(&p, retainedResults)
+}
+
+// NewTransport creates a new http.Transport.
+//
+// It purposefully has low timeouts, to allow for quick error detection and alerting.
+// Keep-alive is also disabled, to ensure that processes such as DNS lookup
+// and TLS handshakes are tested at each requested.
+func NewTransport() *http.Transport {
+	return &http.Transport{
+		DisableKeepAlives: true,
+		DialContext: (&net.Dialer{
+			Timeout:   2 * time.Second,
+			KeepAlive: 2 * time.Second,
+			DualStack: true,
+		}).DialContext,
+		IdleConnTimeout:     2 * time.Second,
+		TLSHandshakeTimeout: 2 * time.Second,
+	}
 }
 
 // SaveResult saves a PollResult at the end of a websites' PollResults.
@@ -108,22 +117,12 @@ func (w *Website) schedulePolls(p PollConfig) {
 	}
 }
 
-// Availability returns the average availability of a website over the specified timespan in seconds.
-func (w *Website) Availability(timespan int) float64 {
-	// TODO: remove duplicated code with aggregateResults /!\
-
-	// Copy poll results to ensure that they are not modified by
-	// concurrent functions while results are being aggregated
-	p := w.PollResults
-	startIdx := p.StartIndexFor(timespan)
-	return p.Availability(startIdx)
-}
-
 // Aggregate returns a payload.Metric containing the statistics for the website,
 // aggregated over the specified timespan in seconds.
 func (w *Website) Aggregate(timespan int) payload.Metric {
 	// Copy poll results to ensure that they are not modified by
 	// concurrent functions while results are being aggregated
+	// TODO: avoid this somehow?
 	p := w.PollResults
 	startIdx := p.StartIndexFor(timespan)
 	return payload.Metric{
@@ -132,23 +131,5 @@ func (w *Website) Aggregate(timespan int) payload.Metric {
 		Max:              p.Max(startIdx),
 		StatusCodeCounts: p.CountCodes(startIdx),
 		ErrorCounts:      p.CountErrors(startIdx),
-	}
-}
-
-// NewTransport creates a new http.Transport.
-//
-// It purposefully has low timeouts, to allow for quick error detection and alerting.
-// Keep-alive is also disabled, to ensure that processes such as DNS lookup
-// and TLS handshakes are tested at each requested.
-func NewTransport() *http.Transport {
-	return &http.Transport{
-		DisableKeepAlives: true,
-		DialContext: (&net.Dialer{
-			Timeout:   2 * time.Second,
-			KeepAlive: 2 * time.Second,
-			DualStack: true,
-		}).DialContext,
-		IdleConnTimeout:     2 * time.Second,
-		TLSHandshakeTimeout: 2 * time.Second,
 	}
 }

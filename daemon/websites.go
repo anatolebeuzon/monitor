@@ -28,7 +28,10 @@ func (w Websites) SchedulePolls(p PollConfig) {
 func (w *Websites) Alerts(timespan int, threshold float64) payload.Alerts {
 	alerts := make(payload.Alerts)
 	for i, website := range *w {
-		avail := website.Availability(timespan)
+		// Get average availability
+		startIdx := website.PollResults.StartIndexFor(timespan)
+		avail := website.PollResults.Availability(startIdx)
+
 		if (avail < threshold) && !website.DownAlertSent {
 			// if the website is considered down but no alert for this event was sent yet
 			// create a "website is down" alert

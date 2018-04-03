@@ -1,4 +1,5 @@
 /*
-Package client implements a Monitor client.
+monitorctl is a client for the monitord daemon.
+It provides information
 */
 package client
