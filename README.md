@@ -34,6 +34,10 @@ Go has many great features, amongst which:
 
 ## Metrics: effective monitoring
 
+Redirects not followed, by choice.
+
+## Folder and files structure
+
 # Usage
 
 ## Requirements
@@ -49,3 +53,14 @@ Go has many great features, amongst which:
 ### Documentation
 
 Use godoc.
+
+# Future improvements
+
+* stateless daemon
+* multiple pollers
+* dashboard with search engine to navigate through thousands of websites
+* Alert web hooks, to be notified through Slack / Telegram / whatever
+* Config validation
+* Granular website config:
+  * different polling interval
+  * different availability threshold, depending on SLOs

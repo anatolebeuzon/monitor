@@ -12,12 +12,7 @@ type Dashboard struct {
 }
 
 func NewDashboard(s *Store, c *Config, updateUI chan bool) (d Dashboard) {
-	return Dashboard{
-		store:      s,
-		currentIdx: 0,
-		page:       NewDashboardPage(s, c),
-		updateUI:   updateUI,
-	}
+	return Dashboard{s, 0, NewDashboardPage(s, c), updateUI}
 }
 
 func (d *Dashboard) Show() error {

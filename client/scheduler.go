@@ -35,9 +35,9 @@ func (s *Scheduler) Init(store *Store) {
 	c := &s.Config
 	for _, stat := range []Statistic{c.Statistics.Left, c.Statistics.Right} {
 		go func(stat Statistic) {
-			s.GetData(stat.Timespan)
+			s.GetStats(stat.Timespan)
 			for range time.Tick(time.Duration(stat.Frequency) * time.Second) {
-				s.GetData(stat.Timespan)
+				s.GetStats(stat.Timespan)
 			}
 		}(stat)
 	}

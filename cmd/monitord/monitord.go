@@ -15,7 +15,6 @@ package main
 import (
 	"flag"
 	"fmt"
-	"log"
 	"monitor/daemon"
 	"os"
 	"os/signal"
@@ -36,10 +35,7 @@ func main() {
 	// Load config
 	configPath := flag.String("config", "config.json", "Config file in JSON format")
 	flag.Parse()
-	config, err := agent.ReadConfig(*configPath)
-	if err != nil {
-		log.Fatal(err)
-	}
+	config := agent.ReadConfig(*configPath)
 
 	websites := agent.NewWebsites(config.URLs)
 	websites.SchedulePolls(config.Poll)

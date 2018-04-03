@@ -1,3 +1,8 @@
+/*
+This file handles all the interactions with an RPC client.
+It exposes both the aggregated statistics and the alerts.
+*/
+
 package agent
 
 import (
@@ -11,29 +16,39 @@ import (
 	"strconv"
 )
 
-// Handler contains all the websites and provides methods
-// exposed over RPC.
+// Handler contains all the necessary data to satisfy RPC calls.
+// It will be registered as the RPC receiver and its methods will be published.
 type Handler struct {
 	Websites       *Websites
 	AlertThreshold float64
 }
 
-func (h *Handler) Metrics(timespan int, reply *payload.Stats) error {
-	*reply = h.Websites.aggregateResults(timespan)
+// Stats puts the latest websites stats, aggregated over the specified timespan,
+// as the reply value.
+//
+// Stats is meant to be used through an RPC call.
+func (h *Handler) Stats(timespan int, reply *payload.Stats) error {
+	*reply = h.Websites.Stats(timespan)
 	return nil
 }
 
+// Alerts puts the latest websites alerts as the reply value.
+// An alert is created only if the availability threshold is crossed
+// based on the availability aggregated over the specified timespan.
+//
+// Alerts is meant to be used through an RPC call.
 func (h *Handler) Alerts(timespan int, reply *payload.Alerts) error {
 	*reply = h.Websites.Alerts(timespan, h.AlertThreshold)
 	return nil
 }
 
-// ServeRPC starts an RPC server, and exposes the methods
-// of the handler type.
+// ServeRPC starts an RPC server, and publishes the methods
+// of the Handler type.
 func ServeRPC(h *Handler, port int, interrupt chan os.Signal) {
+	// TODO: a bit more documentation here
 	rpcServer := rpc.NewServer()
 	rpcServer.Register(h)
-	rpcServer.HandleHTTP("/_goRPC_", "/debug/rpc") // use defaults used by HandleHTTP
+	rpcServer.HandleHTTP("/_goRPC_", "/debug/rpc") // args are the defaults used by HandleHTTP
 
 	httpServer := &http.Server{
 		Addr:    ":" + strconv.Itoa(port),
@@ -41,7 +56,7 @@ func ServeRPC(h *Handler, port int, interrupt chan os.Signal) {
 	}
 
 	// Gracefully handle shutdown requests
-	// TODO: remove this? is a graceful shutdown really useful?
+	// TODO: remove this? is a graceful shutdown really useful? or use TCP instead of HTTP?
 	go func() {
 		<-interrupt
 		httpServer.Shutdown(context.Background())

@@ -8,14 +8,14 @@ import (
 
 const rpcProtocol = "tcp"
 
-func (s *Scheduler) GetData(timespan int) {
+func (s *Scheduler) GetStats(timespan int) {
 	client, err := rpc.DialHTTP(rpcProtocol, s.Config.Server)
 	if err != nil {
 		log.Fatal("Failed to connect to the daemon:", err)
 	}
 
 	var stats payload.Stats
-	err = client.Call("Handler.Metrics", &timespan, &stats)
+	err = client.Call("Handler.Stats", &timespan, &stats)
 	if err != nil {
 		log.Fatal("RPC error:", err)
 	}

@@ -28,11 +28,11 @@ func NewDashboardPage(s *Store, c *Config) DashboardPage {
 	Alerts.BorderLabel += "refreshed every " + strconv.Itoa(c.Alerts.Frequency) + "s)"
 
 	return DashboardPage{
-		Title:   *Title,
-		Counter: *Counter,
-		Left:    NewDashboardSide(c.Statistics.Left, ui.ColorBlue),
-		Right:   NewDashboardSide(c.Statistics.Right, ui.ColorYellow),
-		Alerts:  *Alerts,
+		*Title,
+		*Counter,
+		NewDashboardSide(c.Statistics.Left, ui.ColorBlue),
+		NewDashboardSide(c.Statistics.Right, ui.ColorYellow),
+		*Alerts,
 	}
 }
 

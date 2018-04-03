@@ -3,6 +3,7 @@ package agent
 import (
 	"fmt"
 	"io/ioutil"
+	"monitor/payload"
 	"net"
 	"net/http"
 	"net/http/httptrace"
@@ -11,8 +12,8 @@ import (
 
 type Website struct {
 	// Hostname string
-	URL          string
-	TraceResults TraceResults
+	URL         string
+	PollResults PollResults
 
 	// DownAlertSent is true if at the last alert check from the front-end,
 	// the aggregate availability was below the threshold. Keeping this information:
@@ -40,13 +41,13 @@ func (w *Website) Poll(retainedResults int) {
 		GotFirstResponseByte: func() { t5 = time.Now() },
 	}
 
-	var tr TraceResult
+	var p PollResult
 	req = req.WithContext(httptrace.WithClientTrace(req.Context(), trace))
 	resp, err := NewTransport().RoundTrip(req)
 	if err != nil {
-		tr.Error = err
+		p.Error = err
 	} else {
-		tr.StatusCode = resp.StatusCode
+		p.StatusCode = resp.StatusCode
 		ioutil.ReadAll(resp.Body)
 		resp.Body.Close()
 		t6 = time.Now() // body has been read, response is over
@@ -70,31 +71,33 @@ func (w *Website) Poll(retainedResults int) {
 		t6 = t5
 	}
 
-	tr.Date = t0
-	tr.Timing.DNS = t1.Sub(t0)
-	tr.Timing.TCP = t3.Sub(t2)
-	tr.Timing.TLS = t4.Sub(t3)
-	tr.Timing.Server = t5.Sub(t4)
-	tr.Timing.Transfer = t6.Sub(t5)
-	tr.Timing.TTFB = t5.Sub(t0)
-	tr.Timing.Response = t6.Sub(t0)
+	p.Date = t0
+	p.Timing = payload.Timing{
+		DNS:      t1.Sub(t0),
+		TCP:      t3.Sub(t2),
+		TLS:      t4.Sub(t3),
+		Server:   t5.Sub(t4),
+		Transfer: t6.Sub(t5),
+		TTFB:     t5.Sub(t0),
+		Response: t6.Sub(t0),
+	}
 
-	fmt.Println(tr)
-	w.SaveResult(&tr, retainedResults)
+	fmt.Println(p)
+	w.SaveResult(&p, retainedResults)
 }
 
-// SaveResult saves a TraceResult at the end of a websites' TraceResult.
+// SaveResult saves a PollResult at the end of a websites' PollResults.
 //
-// If the number of TraceResults exceeds the user-defined retainedResults parameter,
+// If the number of poll results exceeds the user-defined retainedResults parameter,
 // the oldest items are deleted.
 // If retainedResults = 0, no metric is ever deleted.
-func (w *Website) SaveResult(tr *TraceResult, retainedResults int) {
+func (w *Website) SaveResult(p *PollResult, retainedResults int) {
 	itemsToDelete := 0
-	if (retainedResults != 0) && (len(w.TraceResults) >= retainedResults) {
-		itemsToDelete = len(w.TraceResults) + 1 - retainedResults
+	if (retainedResults != 0) && (len(w.PollResults) >= retainedResults) {
+		itemsToDelete = len(w.PollResults) + 1 - retainedResults
 	} // If retainedResults is set to 0, store an unlimited number of results
 
-	w.TraceResults = append(w.TraceResults[itemsToDelete:], *tr)
+	w.PollResults = append(w.PollResults[itemsToDelete:], *p)
 }
 
 // schedulePolls schedules regular polls for the website.
@@ -102,6 +105,33 @@ func (w *Website) SaveResult(tr *TraceResult, retainedResults int) {
 func (w *Website) schedulePolls(p PollConfig) {
 	for range time.Tick(time.Duration(p.Interval) * time.Second) {
 		w.Poll(p.RetainedResults)
+	}
+}
+
+// Availability returns the average availability of a website over the specified timespan in seconds.
+func (w *Website) Availability(timespan int) float64 {
+	// TODO: remove duplicated code with aggregateResults /!\
+
+	// Copy poll results to ensure that they are not modified by
+	// concurrent functions while results are being aggregated
+	p := w.PollResults
+	startIdx := p.StartIndexFor(timespan)
+	return p.Availability(startIdx)
+}
+
+// Aggregate returns a payload.Metric containing the statistics for the website,
+// aggregated over the specified timespan in seconds.
+func (w *Website) Aggregate(timespan int) payload.Metric {
+	// Copy poll results to ensure that they are not modified by
+	// concurrent functions while results are being aggregated
+	p := w.PollResults
+	startIdx := p.StartIndexFor(timespan)
+	return payload.Metric{
+		Availability:     p.Availability(startIdx),
+		Average:          p.Average(startIdx),
+		Max:              p.Max(startIdx),
+		StatusCodeCounts: p.CountCodes(startIdx),
+		ErrorCounts:      p.CountErrors(startIdx),
 	}
 }
 
