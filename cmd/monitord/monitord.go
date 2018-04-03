@@ -1,6 +1,19 @@
+/*
+monitord is a daemon that polls websites and gather related metrics.
+Those metrics are accessible through an RPC API.
+
+Usage :
+	monitord [-config path]
+where path is the relative path to the config file of the daemon.
+If the config flag is not provided, monitord will look for
+a file named config.json in the current directory.
+
+Note that monitord's config file is different from monitorctl's.
+*/
 package main
 
 import (
+	"flag"
 	"fmt"
 	"log"
 	"monitor/daemon"
@@ -11,7 +24,6 @@ import (
 const (
 	name        = "monitord"
 	description = "Daemon that polls websites and gather related metrics"
-	configPath  = "config.json"
 )
 
 func main() {
@@ -22,7 +34,9 @@ func main() {
 	signal.Notify(interrupt, os.Interrupt)
 
 	// Load config
-	config, err := agent.ReadConfig(configPath)
+	configPath := flag.String("config", "config.json", "Config file in JSON format")
+	flag.Parse()
+	config, err := agent.ReadConfig(*configPath)
 	if err != nil {
 		log.Fatal(err)
 	}
