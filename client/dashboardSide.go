@@ -9,20 +9,24 @@ import (
 	ui "github.com/gizak/termui"
 )
 
+// DashboardSide contains the UI objects used to display the stats
+// on either side of the dashboard.
 type DashboardSide struct {
-	Timespan     int
-	Title        ui.Par
-	Availability ui.Gauge
-	Breakdown    ui.Table
-	CodeCounts   ui.BarChart
-	RespHist     ui.LineChart
-	Errors       ui.Par
+	Timespan     int          // The timespan by which metrics are aggregated
+	Title        ui.Par       // Title of the aggregate
+	Availability ui.Gauge     // Availability gauge
+	Breakdown    ui.Table     // HTTP lifecycle steps durations
+	CodeCounts   ui.BarChart  // Bar chart of the HTTP response codes counts
+	RespGraph    ui.LineChart // Graph of response time evolution
+	Errors       ui.Par       // Latest client (non-HTTP) errors
 }
 
-func NewDashboardSide(s Statistic, color ui.Attribute) DashboardSide {
+// NewDashboardSide initializes the widgets of the dashboard side with the
+// appropriate UI parameters and returns a new DashboardPage.
+func NewDashboardSide(t TimeConf, color ui.Attribute) DashboardSide {
 	Title := ui.NewPar("")
-	Title.Text = "Aggregated over " + strconv.Itoa(s.Timespan) + "s"
-	Title.Text += " (refreshed every " + strconv.Itoa(s.Frequency) + "s)"
+	Title.Text = "Aggregated over " + strconv.Itoa(t.Timespan) + "s"
+	Title.Text += " (refreshed every " + strconv.Itoa(t.Frequency) + "s)"
 	Title.Height = 1
 	Title.Border = false
 
@@ -50,12 +54,12 @@ func NewDashboardSide(s Statistic, color ui.Attribute) DashboardSide {
 	CodeCounts.Height = 10
 	CodeCounts.BorderFg = color
 
-	RespHist := ui.NewLineChart()
-	RespHist.BorderLabel = "Average response time evolution"
-	RespHist.Height = 10
-	RespHist.BorderFg = color
-	RespHist.Mode = "dot"
-	RespHist.DotStyle = '+'
+	RespGraph := ui.NewLineChart()
+	RespGraph.BorderLabel = "Average response time evolution"
+	RespGraph.Height = 10
+	RespGraph.BorderFg = color
+	RespGraph.Mode = "dot"
+	RespGraph.DotStyle = '+'
 
 	Errors := ui.NewPar("")
 	Errors.BorderLabel = "Latest errors"
@@ -63,16 +67,17 @@ func NewDashboardSide(s Statistic, color ui.Attribute) DashboardSide {
 	Errors.BorderFg = color
 
 	return DashboardSide{
-		Timespan:     s.Timespan,
-		Title:        *Title,
-		Availability: *Availability,
-		Breakdown:    *Breakdown,
-		CodeCounts:   *CodeCounts,
-		RespHist:     *RespHist,
-		Errors:       *Errors,
+		t.Timespan,
+		*Title,
+		*Availability,
+		*Breakdown,
+		*CodeCounts,
+		*RespGraph,
+		*Errors,
 	}
 }
 
+// Refresh updates the DashboardSide using the latest data available.
 func (s *DashboardSide) Refresh(m Metric) {
 	// Update availability gauge
 	s.Availability.Percent = int(m.Latest.Availability * 100)
@@ -94,8 +99,8 @@ func (s *DashboardSide) Refresh(m Metric) {
 	// Update code counts
 	s.CodeCounts.Data, s.CodeCounts.DataLabels = ExtractResponseCounts(m.Latest)
 
-	// Update response history
-	s.RespHist.Data = ToFloat64(m.AvgRespHist)
+	// Update response time graph
+	s.RespGraph.Data = ToFloat64(m.AvgRespHist)
 
 	// Update errors list
 	s.Errors.Text = "" // Reset ErrorCounts text
@@ -104,20 +109,28 @@ func (s *DashboardSide) Refresh(m Metric) {
 	}
 }
 
-func ExtractResponseCounts(m payload.Metric) (values []int, labels []string) {
-	var keys sort.IntSlice
-	for key := range m.StatusCodeCounts {
-		keys = append(keys, key)
+// ExtractResponseCounts reads a metric and returns the corresponding
+// slices that can be used to display a bar chart of response code counts.
+//
+// For example, the
+func ExtractResponseCounts(m payload.Metric) (codeCounts []int, codeNames []string) {
+	// Gather all the HTTP response codes and sort them in ascending order
+	var codes sort.IntSlice
+	for code := range m.StatusCodeCounts {
+		codes = append(codes, code)
 	}
-	keys.Sort()
+	codes.Sort()
 
-	for _, key := range keys {
-		values = append(values, m.StatusCodeCounts[key])
-		labels = append(labels, strconv.Itoa(key))
+	// Generate code count and labels
+	for _, code := range codes {
+		codeCounts = append(codeCounts, m.StatusCodeCounts[code])
+		codeNames = append(codeNames, strconv.Itoa(code))
 	}
 
-	labels = append(labels, "err")
-	values = append(values, Count(m.ErrorCounts))
+	// Append client (non-HTTP) error count at the end
+	codeNames = append(labels, "err")
+	codeCounts = append(codeCounts, Count(m.ErrorCounts))
+
 	return
 }
 

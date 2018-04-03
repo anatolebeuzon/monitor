@@ -6,46 +6,35 @@ import (
 	"net/rpc"
 )
 
-const rpcProtocol = "tcp"
+// CallRPC connects to the daemon, calls the named function, waits for
+// it to complete, then closes the connection.
+func (s *Scheduler) CallRPC(method string, args interface{}, reply interface{}) error {
+	client, err := rpc.DialHTTP("tcp", s.Config.Server)
+	if err != nil {
+		return err
+	}
 
+	if err = client.Call(method, args, reply); err != nil {
+		return err
+	}
+
+	return client.Close()
+}
+
+// GetStats gets the latest websites Stats from the daemon via RPC.
 func (s *Scheduler) GetStats(timespan int) {
-	client, err := rpc.DialHTTP(rpcProtocol, s.Config.Server)
-	if err != nil {
-		log.Fatal("Failed to connect to the daemon:", err)
-	}
-
 	var stats payload.Stats
-	err = client.Call("Handler.Stats", &timespan, &stats)
-	if err != nil {
-		log.Fatal("RPC error:", err)
+	if err := s.CallRPC("Handler.Stats", &timespan, &stats); err != nil {
+		log.Fatal(err)
 	}
-
-	err = client.Close()
-	if err != nil {
-		log.Fatal("RPC closing error:", err)
-	}
-
 	s.Received.stats <- stats
 }
 
+// GetAlerts gets the latest websites Alerts from the daemon via RPC.
 func (s *Scheduler) GetAlerts(timespan int) {
-	// TODO: fix duplicated code with GetData()
-
-	client, err := rpc.DialHTTP(rpcProtocol, s.Config.Server)
-	if err != nil {
-		log.Fatal("Failed to connect to the daemon:", err)
-	}
-
 	var alerts payload.Alerts
-	err = client.Call("Handler.Alerts", &timespan, &alerts)
-	if err != nil {
-		log.Fatal("RPC error:", err)
+	if err := s.CallRPC("Handler.Alerts", &timespan, &alerts); err != nil {
+		log.Fatal(err)
 	}
-
-	err = client.Close()
-	if err != nil {
-		log.Fatal("RPC closing error:", err)
-	}
-
 	s.Received.alerts <- alerts
 }

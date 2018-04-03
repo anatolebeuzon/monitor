@@ -7,19 +7,25 @@ import (
 
 type Scheduler struct {
 	Config   Config
-	Received receivers
+	Received Receivers
+
+	// UpdateUI informs the dashboard that new data is available in the store,
+	// and that it should re-render to display the latest information
 	UpdateUI chan bool
 }
 
-type receivers struct {
+// Receivers are channels that temporarily store payloads from daemons,
+// until those payloads are processed by Receive()
+type Receivers struct {
 	stats  chan payload.Stats
 	alerts chan payload.Alerts
 }
 
+// NewScheduler creates a new Scheduler with the provided Config.
 func NewScheduler(c Config) *Scheduler {
 	return &Scheduler{
 		Config: c,
-		Received: receivers{
+		Received: Receivers{
 			stats:  make(chan payload.Stats),
 			alerts: make(chan payload.Alerts),
 		},
@@ -27,19 +33,20 @@ func NewScheduler(c Config) *Scheduler {
 	}
 }
 
+// Init initiates regular polling of the daemon.
 func (s *Scheduler) Init(store *Store) {
 	// Create receiver
-	go s.receive(store)
+	go s.Receive(store)
 
 	// Launch stat check routines
 	c := &s.Config
-	for _, stat := range []Statistic{c.Statistics.Left, c.Statistics.Right} {
-		go func(stat Statistic) {
-			s.GetStats(stat.Timespan)
-			for range time.Tick(time.Duration(stat.Frequency) * time.Second) {
-				s.GetStats(stat.Timespan)
+	for _, t := range []TimeConf{c.Statistics.Left, c.Statistics.Right} {
+		go func(t TimeConf) {
+			s.GetStats(t.Timespan)
+			for range time.Tick(time.Duration(t.Frequency) * time.Second) {
+				s.GetStats(t.Timespan)
 			}
-		}(stat)
+		}(t)
 	}
 
 	// Launch alert check routine
@@ -50,7 +57,8 @@ func (s *Scheduler) Init(store *Store) {
 	}()
 }
 
-func (s *Scheduler) receive(store *Store) {
+// Receive processes received payloads and add those to the Store.
+func (s *Scheduler) Receive(store *Store) {
 	for {
 		select {
 		case stats := <-s.Received.stats:
@@ -78,7 +86,6 @@ func (s *Scheduler) receive(store *Store) {
 
 		case alerts := <-s.Received.alerts:
 			for url, alert := range alerts {
-				// TODO: no check that URL is registered. Is it okay?
 				store.Alerts[url] = append(store.Alerts[url], alert)
 			}
 			s.UpdateUI <- true

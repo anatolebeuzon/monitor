@@ -10,7 +10,9 @@ a file named config.json in the current directory.
 
 Note that monitord's config file is different from monitorctl's.
 
-Sample JSON config file:
+Configuration
+
+A sample JSON config file is described below:
 
 	{
 		"ListeningPort": 1234, 			// the port on which the RPC server listens

@@ -13,7 +13,7 @@ type Store struct {
 	Alerts  Alerts
 }
 
-// Metrics[url][timespan] will give the aggregatedMetric for the selected URL and timespan
+// Metrics[url][timespan] will give the aggregated metric for the selected URL and timespan
 type Metrics map[string]map[int]Metric
 
 type Metric struct {

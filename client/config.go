@@ -1,3 +1,9 @@
+/*
+OK
+
+This file is used to generate a Config object from a JSON config file.
+*/
+
 package client
 
 import (
@@ -7,21 +13,21 @@ import (
 	"os"
 )
 
+// Config represents the user-defined configuration of the daemon.
 type Config struct {
-	Server     string
+	Server     string // Address on which monitord listens
 	Statistics struct {
-		Left  Statistic
-		Right Statistic
+		Left  TimeConf // Left side of the dashboard
+		Right TimeConf // Right side
 	}
-	Alerts struct {
-		Frequency int
-		Timespan  int
-	}
+	Alerts TimeConf
 }
 
-type Statistic struct {
-	Frequency int
-	Timespan  int
+// TimeConf defines how the client should poll the daemon
+// for a specific piece of information (e.g. latest alerts).
+type TimeConf struct {
+	Frequency int // Frequency at which the daemon should be polled
+	Timespan  int // Timespan over which metrics should be aggregated
 }
 
 // ReadConfig reads the config file and returns the associated Config object.

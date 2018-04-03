@@ -66,3 +66,5 @@ Use godoc.
   * different polling interval
   * different availability threshold, depending on SLOs
 * Handle errors and valid response differently, to avoid false statistics
+* Improve network resiliency
+* Adaptive dashboard height
