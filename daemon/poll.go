@@ -1,4 +1,13 @@
-package agent
+/*
+OK
+
+This file contains the polling logic, namely:
+- how and when websites are polled
+- how metrics are collected throughout the lifecycle of an HTTP request
+- how poll results are saved (to allow for later analysis and aggregation)
+*/
+
+package daemon
 
 import (
 	"fmt"
@@ -10,26 +19,27 @@ import (
 	"time"
 )
 
-type Website struct {
-	URL         string
-	PollResults PollResults
-
-	// DownAlertSent is true if at the last alert check from the front-end,
-	// the aggregate availability was below the threshold. Keeping this information:
-	// - avoids sending repetitive "website is down!" alerts
-	// - enables the sending of one "website is up!" alert upon website recovery
-	DownAlertSent bool
+// SchedulePolls schedules regular polls for the website. It never returns.
+// The polling interval and the metrics retention policy are defined by the config file.
+func (w *Website) SchedulePolls(p PollConfig) {
+	for range time.Tick(time.Duration(p.Interval) * time.Second) {
+		w.Poll(p.RetainedResults)
+	}
 }
 
-// Poll makes a GET request to a website, measures response times and response codes.
+// Poll makes a GET request to a website, measuring various times
+// throughout the HTTP request, and reading the HTTP response code.
 func (w *Website) Poll(retainedResults int) {
+
+	// Create request
 	req, err := http.NewRequest("GET", w.URL, nil)
 	if err != nil {
 		fmt.Println(err)
 		return
 	}
 
-	var t [7]time.Time
+	// Record the exact times when the different parts of the request are reached
+	var t [7]time.Time // t will store those times
 	trace := &httptrace.ClientTrace{
 		DNSStart:             func(_ httptrace.DNSStartInfo) { t[0] = time.Now() },
 		DNSDone:              func(_ httptrace.DNSDoneInfo) { t[1] = time.Now() },
@@ -39,6 +49,7 @@ func (w *Website) Poll(retainedResults int) {
 		GotFirstResponseByte: func() { t[5] = time.Now() },
 	}
 
+	// Execute request and read response
 	var p PollResult
 	req = req.WithContext(httptrace.WithClientTrace(req.Context(), trace))
 	resp, err := NewTransport().RoundTrip(req)
@@ -48,11 +59,12 @@ func (w *Website) Poll(retainedResults int) {
 		p.StatusCode = resp.StatusCode
 		ioutil.ReadAll(resp.Body)
 		resp.Body.Close()
-		t[6] = time.Now() // body has been read, response is over
+		t[6] = time.Now() // records the fact that the body has been read (response is over)
 	}
 
-	// If an error occured, some times may still be at 0
-	// However, they must be set to a sensible time to avoid getting absurd results
+	// If an error occured, some times of the t slice may still be at 0.
+	// However, they must be set to a sensible time to avoid getting
+	// absurd results when converting those times to meaningful durations.
 	if t[0].IsZero() {
 		t[0] = time.Now()
 	}
@@ -63,6 +75,8 @@ func (w *Website) Poll(retainedResults int) {
 	}
 
 	p.Date = t[0]
+
+	// Convert the recorded times to meaningful durations
 	p.Timing = payload.Timing{
 		DNS:      t[1].Sub(t[0]),
 		TCP:      t[3].Sub(t[2]),
@@ -73,7 +87,7 @@ func (w *Website) Poll(retainedResults int) {
 		Response: t[6].Sub(t[0]),
 	}
 
-	// fmt.Println(p)
+	// Save the poll result at the end of the website's poll results
 	w.SaveResult(&p, retainedResults)
 }
 
@@ -81,7 +95,7 @@ func (w *Website) Poll(retainedResults int) {
 //
 // It purposefully has low timeouts, to allow for quick error detection and alerting.
 // Keep-alive is also disabled, to ensure that processes such as DNS lookup
-// and TLS handshakes are tested at each requested.
+// and TLS handshakes are tested at each request.
 func NewTransport() *http.Transport {
 	return &http.Transport{
 		DisableKeepAlives: true,
@@ -101,35 +115,9 @@ func NewTransport() *http.Transport {
 // the oldest items are deleted.
 // If retainedResults = 0, no metric is ever deleted.
 func (w *Website) SaveResult(p *PollResult, retainedResults int) {
-	itemsToDelete := 0
+	i := 0
 	if (retainedResults != 0) && (len(w.PollResults) >= retainedResults) {
-		itemsToDelete = len(w.PollResults) + 1 - retainedResults
-	} // If retainedResults is set to 0, store an unlimited number of results
-
-	w.PollResults = append(w.PollResults[itemsToDelete:], *p)
-}
-
-// schedulePolls schedules regular polls for the website.
-// The polling interval and the metrics retention policy are defined by the config file.
-func (w *Website) schedulePolls(p PollConfig) {
-	for range time.Tick(time.Duration(p.Interval) * time.Second) {
-		w.Poll(p.RetainedResults)
+		i = len(w.PollResults) + 1 - retainedResults
 	}
-}
-
-// Aggregate returns a payload.Metric containing the statistics for the website,
-// aggregated over the specified timespan in seconds.
-func (w *Website) Aggregate(timespan int) payload.Metric {
-	// Copy poll results to ensure that they are not modified by
-	// concurrent functions while results are being aggregated
-	// TODO: avoid this somehow?
-	p := w.PollResults
-	startIdx := p.StartIndexFor(timespan)
-	return payload.Metric{
-		Availability:     p.Availability(startIdx),
-		Average:          p.Average(startIdx),
-		Max:              p.Max(startIdx),
-		StatusCodeCounts: p.CountCodes(startIdx),
-		ErrorCounts:      p.CountErrors(startIdx),
-	}
+	w.PollResults = append(w.PollResults[i:], *p)
 }

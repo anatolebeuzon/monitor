@@ -35,6 +35,7 @@ Go has many great features, amongst which:
 ## Metrics: effective monitoring
 
 Redirects not followed, by choice.
+No min showed, by choice.
 
 ## Folder and files structure
 

@@ -1,42 +1,36 @@
-package agent
+/*
+OK
+
+This file contains the logic regarding poll results aggregation, such as:
+- getting the poll results of the last n seconds
+- computing average availability
+- computing average and maximum times (response times, TLS handshake times, etc.)
+- counting HTTP response codes and counting client errors
+*/
+
+package daemon
 
 import (
 	"monitor/payload"
 	"time"
 )
 
-// A PollResult represents the results of one request to a website.
-//
-// It contains timing information about the different phases of the request,
-// as well as the request result (error or HTTP response code).
-type PollResult struct {
-	// Date is the date at which the first byte of the response was received.
-	Date time.Time
-
-	Timing payload.Timing
-
-	// Error stores the error if the request resulted in an error, or nil otherwise.
-	Error error
-
-	// StatusCode stores the HTTP response code of the request, or 0 if the request
-	// resulted in a (non-HTTP) error.
-	StatusCode int
+// Aggregate returns a payload.Metric containing the statistics for the website,
+// aggregated over the specified timespan in seconds.
+func (w *Website) Aggregate(timespan int) payload.Metric {
+	// Copy poll results to ensure that they are not modified by
+	// concurrent functions while results are being aggregated
+	// TODO: avoid this somehow?
+	p := w.PollResults
+	startIdx := p.StartIndexFor(timespan)
+	return payload.Metric{
+		Availability:     p.Availability(startIdx),
+		Average:          p.Average(startIdx),
+		Max:              p.Max(startIdx),
+		StatusCodeCounts: p.CountCodes(startIdx),
+		ErrorCounts:      p.CountErrors(startIdx),
+	}
 }
-
-// IsValid returns whether the poll result is considered valid or not.
-//
-// To be considered valid, the associated request must satisfy two conditions:
-// the request did not end with an error, and
-// the HTTP response code is neither a Client error nor a Server error.
-func (p *PollResult) IsValid() bool {
-	return (p.Error == nil) && (p.StatusCode < 400)
-}
-
-// PollResults represents all the trace results for a given website.
-//
-// The retention policy of those results is user-defined: in the config file,
-// the RetainedResults parameter specifies how many poll results to keep.
-type PollResults []PollResult
 
 // StartIndexFor (timespan) returns the index (startIndex) of the first
 // trace result that is included in the provided timespan (in seconds).
@@ -70,6 +64,34 @@ func (p PollResults) StartIndexFor(timespan int) int {
 	return 0
 }
 
+// Availability returns the average availability based on the latest poll results,
+// starting from startIdx. The return value is between 0 and 1.
+func (p PollResults) Availability(startIdx int) float64 {
+	if len(p)-startIdx == 0 {
+		// No recent enough poll result is available, so
+		// we cannot know whether the website is up or down.
+		// In this case, act as if the website is down.
+		return float64(0)
+	}
+
+	c := 0
+	for i := startIdx; i < len(p); i++ {
+		if p[i].IsValid() {
+			c++
+		}
+	}
+	return float64(c) / float64(len(p)-startIdx)
+}
+
+// IsValid returns whether the poll result is considered valid or not.
+//
+// To be considered valid, the associated request must satisfy two conditions:
+// the request did not end with an error, and
+// the HTTP response code is neither a Client error nor a Server error.
+func (p *PollResult) IsValid() bool {
+	return (p.Error == nil) && (p.StatusCode < 400)
+}
+
 // Average returns a payload.Timing, in which each duration (DNS, TCP, TLS...)
 // is the average of the respective durations of the selected poll results
 // (here, "selected" poll results refer to the poll results from index startIdx onwards).
@@ -89,14 +111,14 @@ func (p PollResults) Average(startIdx int) (avg payload.Timing) {
 
 	// Divide by the number of elements to get the average
 	if len(p)-startIdx != 0 {
-		tmp := time.Duration(len(p) - startIdx)
-		avg.DNS /= tmp
-		avg.TCP /= tmp
-		avg.TLS /= tmp
-		avg.Server /= tmp
-		avg.TTFB /= tmp
-		avg.Transfer /= tmp
-		avg.Response /= tmp
+		n := time.Duration(len(p) - startIdx)
+		avg.DNS /= n
+		avg.TCP /= n
+		avg.TLS /= n
+		avg.Server /= n
+		avg.TTFB /= n
+		avg.Transfer /= n
+		avg.Response /= n
 	}
 
 	return
@@ -152,23 +174,4 @@ func (p PollResults) CountErrors(startIdx int) map[string]int {
 		}
 	}
 	return errorsCount
-}
-
-// Availability returns the average availability based on the latest poll results,
-// starting from startIdx. The return value is between 0 and 1.
-func (p PollResults) Availability(startIdx int) float64 {
-	if len(p)-startIdx == 0 {
-		// No recent enough poll result is available, so
-		// we cannot know whether the website is up or down.
-		// In this case, act as if the website is down.
-		return float64(0)
-	}
-
-	c := 0
-	for i := startIdx; i < len(p); i++ {
-		if p[i].IsValid() {
-			c++
-		}
-	}
-	return float64(c) / float64(len(p)-startIdx)
 }
