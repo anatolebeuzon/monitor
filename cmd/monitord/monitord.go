@@ -49,9 +49,9 @@ func main() {
 	signal.Notify(interrupt, os.Interrupt)
 
 	// Load config
-	configPath := flag.String("config", "config.json", "Config file in JSON format")
+	path := flag.String("config", "config.json", "Config file in JSON format")
 	flag.Parse()
-	config := daemon.ReadConfig(*configPath)
+	config := daemon.ReadConfig(*path)
 
 	websites := daemon.NewWebsites(config.URLs)
 	websites.InitPolls(config.Poll)

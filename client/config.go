@@ -3,6 +3,7 @@ package client
 import (
 	"encoding/json"
 	"io/ioutil"
+	"log"
 	"os"
 )
 
@@ -23,17 +24,26 @@ type Statistic struct {
 	Timespan  int
 }
 
-func ReadConfig(path string) (config Config, err error) {
+// ReadConfig reads the config file and returns the associated Config object.
+//
+// The program exits if an error is encountered while reading the config file.
+func ReadConfig(path string) Config {
+	// Get working directory to resolve relative path
 	wd, err := os.Getwd()
 	if err != nil {
-		return config, err
+		log.Fatal(err)
 	}
 
+	// Read file content
 	data, err := ioutil.ReadFile(wd + "/" + path)
 	if err != nil {
-		return config, err
+		log.Fatal(err)
 	}
 
-	err = json.Unmarshal(data, &config)
-	return config, err
+	// Unmarshal file content in a Config object
+	var config Config
+	if err = json.Unmarshal(data, &config); err != nil {
+		log.Fatal(err)
+	}
+	return config
 }

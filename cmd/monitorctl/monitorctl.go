@@ -9,27 +9,47 @@ If the config flag is not provided, monitorctl will look for
 a file named config.json in the current directory.
 
 Note that monitorctl's config file is different from monitord's.
+
+Sample JSON config file:
+	{
+		"Server": "127.0.0.1:1234",	// Address on which monitord listens
+		"Statistics": {
+			"Left": {					// Left side of the dashboard
+			"Frequency": 2,			// Frequency at which the daemon should be polled for stats
+			"Timespan": 20			// Timespan over which metrics should be aggregated
+			},
+			"Right": {					// Right side of the dashboard
+			"Frequency": 10,
+			"Timespan": 40
+			}
+		},
+		"Alerts": {
+			"Frequency": 4,				// Frequency at which the daemon should be polled for alerts
+			"Timespan": 120				// Timespan over which average availability should be computed
+		}
+	}
 */
 package main
 
 import (
 	"flag"
-	"log"
 	"monitor/client"
 )
 
 func main() {
 	// Load config
-	configPath := flag.String("config", "config.json", "Config file in JSON format")
+	path := flag.String("config", "config.json", "Config file in JSON format")
 	flag.Parse()
-	config, err := client.ReadConfig(*configPath)
-	if err != nil {
-		log.Fatal(err)
-	}
+	config := client.ReadConfig(*path)
 
-	s := client.NewScheduler(config)
+	// Create a new store to store the information received from the daemon
 	store := client.NewStore()
-	s.Init(store)
+
+	// Create new scheduler to regularly poll the daemon
+	s := client.NewScheduler(config)
+	s.Init(store) // start polling
+
+	// Create and display a new dashboard
 	d := client.NewDashboard(store, &config, s.UpdateUI)
 	d.Show()
 }
