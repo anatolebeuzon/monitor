@@ -6,18 +6,17 @@ import (
 	ui "github.com/gizak/termui"
 )
 
-// Dashboard represents a dashboard, including the UI elements (widgets),
-// the UI state (e.g. page number), and a pointer to the underlying data.
+// Dashboard represents a dashboard, including the UI elements (widgets)
+// and a pointer to the underlying data.
 type Dashboard struct {
-	store      *Store        // Pointer to the data that the dashboard can present
-	currentIdx int           // Index of the current page (page order is defined by Store.URLs)
-	page       DashboardPage // page contains the widgets that are presented on the dashboard
-	updateUI   chan bool     // updateUI signals when the dashboard should be rerendered (e.g. when new data arrives)
+	store    *Store        // Pointer to the data that the dashboard can present
+	page     DashboardPage // page contains the widgets that are presented on the dashboard
+	updateUI chan bool     // updateUI signals when the dashboard should be rerendered (e.g. when new data arrives)
 }
 
 // NewDashboard returns a new dashboard.
 func NewDashboard(s *Store, c *Config, updateUI chan bool) (d Dashboard) {
-	return Dashboard{s, 0, NewDashboardPage(c), updateUI}
+	return Dashboard{s, NewDashboardPage(c), updateUI}
 }
 
 // Show displays the dashboard on the console.
@@ -43,7 +42,7 @@ func (d *Dashboard) Show() {
 		select {
 		case <-d.updateUI:
 			// Refresh the widgets with the latest data
-			d.page.Refresh(d.currentIdx, d.store)
+			d.page.Refresh(d.store)
 
 			// Rerender UI
 			ui.Render(ui.Body)
@@ -92,18 +91,22 @@ func (d *Dashboard) RegisterEventHandlers() {
 		ui.StopLoop()
 	})
 
+	s := d.store
+	s.Lock()
+	defer s.Unlock()
+
 	// Move to the next page when right arrow is pressed
 	ui.Handle("/sys/kbd/<right>", func(ui.Event) {
-		if d.currentIdx < len(d.store.URLs)-1 { // if there is a next page
-			d.currentIdx++
+		if s.currentIdx < len(s.URLs)-1 { // if there is a next page
+			s.currentIdx++
 			d.updateUI <- true
 		}
 	})
 
 	// Move to the previous page when left arrow is pressed
 	ui.Handle("/sys/kbd/<left>", func(ui.Event) {
-		if d.currentIdx >= 1 { // if there is a previous page
-			d.currentIdx--
+		if s.currentIdx >= 1 { // if there is a previous page
+			s.currentIdx--
 			d.updateUI <- true
 		}
 	})

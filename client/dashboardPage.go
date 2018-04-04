@@ -43,15 +43,15 @@ func NewDashboardPage(c *Config) DashboardPage {
 }
 
 // Refresh rerenders the DashboardPage using the latest data available.
-func (p *DashboardPage) Refresh(currentIdx int, s *Store) {
+func (p *DashboardPage) Refresh(s *Store) {
 	s.RLock()
 	defer s.RUnlock()
 
-	url := s.URLs[currentIdx]
+	url := s.URLs[s.currentIdx]
 
 	// Update top-level widgets
 	p.Title.Text = url
-	p.Counter.Text = "Page " + strconv.Itoa(currentIdx+1) + "/" + strconv.Itoa(len(s.URLs))
+	p.Counter.Text = "Page " + strconv.Itoa(s.currentIdx+1) + "/" + strconv.Itoa(len(s.URLs))
 	p.Alerts.Text = s.Alerts.String(url)
 
 	// Update stats on both sides
