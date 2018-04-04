@@ -19,7 +19,7 @@ type UIPage struct {
 	Left    UISide // Stats presented on the left-hand side of the dashboard
 	Right   UISide // Stats presented on the right-hand side of the dashboard
 	Alerts  ui.Par // Shows the latest alerts
-	Footer  ui.Par
+	Footer  ui.Par // Footer with navigation information
 }
 
 // NewUIPage initializes the widgets of the dashboard with the
@@ -56,11 +56,11 @@ func (p *UIPage) Refresh(s *Store) {
 	s.RLock()
 	defer s.RUnlock()
 
-	url := s.URLs[s.currentIdx]
+	url := s.URLs[s.CurrentIdx]
 
 	// Update top-level widgets
 	p.Title.Text = url
-	p.Counter.Text = "Page " + strconv.Itoa(s.currentIdx+1) + "/" + strconv.Itoa(len(s.URLs))
+	p.Counter.Text = "Page " + strconv.Itoa(s.CurrentIdx+1) + "/" + strconv.Itoa(len(s.URLs))
 	p.Alerts.Text = FormatAlerts(&s.Alerts, url)
 
 	// Update stats on both sides

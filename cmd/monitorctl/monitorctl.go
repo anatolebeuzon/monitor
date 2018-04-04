@@ -10,6 +10,9 @@ a file named config.json in the current directory.
 
 Note that monitorctl's config file is different from monitord's.
 
+Once the dashboard is shown, you can navigate between websites using left and
+right arrows, or press "Q" to quit the dashboard.
+
 Configuration
 
 A sample JSON config file is described below:

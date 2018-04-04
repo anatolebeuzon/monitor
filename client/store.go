@@ -18,7 +18,7 @@ import (
 type Store struct {
 	sync.RWMutex
 	URLs       []string
-	currentIdx int // Index of the currently displayed website (website order is defined by Store.URLs)
+	CurrentIdx int // Index of the currently displayed website (website order is defined by Store.URLs)
 	Metrics    Metrics
 	Alerts     Alerts
 }

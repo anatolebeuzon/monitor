@@ -54,6 +54,8 @@ No min showed, by choice.
 ### Documentation
 
 Use godoc.
+As an effort to provide easy access to the project's documentation, I purposefully chose to export all methods, thus making them available through godoc.
+I believe it is an acceptable trade-off, as the `client` and `daemon` packages will not be distributed as libraries, and are only meant to be used through `monitorctl` and `monitord` commands.
 
 # Future improvements
 
