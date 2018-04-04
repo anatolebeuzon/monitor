@@ -57,7 +57,7 @@ Use godoc.
 
 # Future improvements
 
-* stateless daemon
+* stateless daemon (here, stored in memory to keep it simple)
 * multiple pollers
 * dashboard with search engine to navigate through thousands of websites
 * Alert web hooks, to be notified through Slack / Telegram / whatever
@@ -68,3 +68,4 @@ Use godoc.
 * Handle errors and valid response differently, to avoid false statistics
 * Improve network resiliency
 * Adaptive dashboard height
+* dashboard: accept more than two timeframes
