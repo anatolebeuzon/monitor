@@ -107,7 +107,7 @@ func (f *Fetcher) GetAlerts(timespan int) {
 	tf := payload.NewTimeframe(timespan)
 	var alerts payload.Alerts
 	if err := f.CallRPC("Handler.Alerts", &tf, &alerts); err != nil {
-		log.Fatal(err)
+		log.Fatal(err.Error() + "; is the daemon running?")
 	}
 
 	// Save the resulting alerts to the store
