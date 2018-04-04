@@ -103,7 +103,7 @@ func buildHandler(DownAlertSent bool, r ...PollResult) Handler {
 	return Handler([]Website{Website{
 		URL:           testURL,
 		Threshold:     0.8,
-		PollResults:   r,
+		PollResults:   &PollResults{items: r},
 		DownAlertSent: DownAlertSent,
 	}})
 }
