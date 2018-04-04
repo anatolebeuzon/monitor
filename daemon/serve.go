@@ -27,7 +27,7 @@ type Handler Websites
 //
 // Stats is meant to be used through an RPC call.
 func (h *Handler) Stats(tf payload.Timeframe, p *payload.Stats) error {
-	*p = payload.Stats{tf, make(map[string]payload.Metric)}
+	*p = payload.Stats{Timeframe: tf, Metrics: make(map[string]payload.Metric)}
 	for _, website := range *h {
 		(*p).Metrics[website.URL] = website.Aggregate(tf)
 	}
