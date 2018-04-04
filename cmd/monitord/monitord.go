@@ -59,8 +59,7 @@ func main() {
 	signal.Notify(interrupt, os.Interrupt)
 
 	// Load config
-	defaultPath := os.Getenv("GOPATH") + "/src/monitor/cmd/monitord/config.json"
-	path := flag.String("config", defaultPath, "Config file in JSON format")
+	path := flag.String("config", "", "Config file in JSON format")
 	flag.Parse()
 	config := daemon.ReadConfig(*path)
 
