@@ -1,4 +1,4 @@
-/* TODO: update sample JSON config
+/*
 monitord is a daemon that polls websites, gather related metrics,
 and publishes them through an RPC API.
 
@@ -16,17 +16,25 @@ A sample JSON config file is described below:
 
 	{
 		"ListeningPort": 1234, 			// the port on which the RPC server listens
-		"Poll": {
+		"Default": {
 			"Interval": 2, 				// the interval, in seconds, between two requests to a given website
-			"RetainedResults": 1000000  // the number of poll results that are retained for a given website
-	},
-		"AlertThreshold": 0.8, 			// the availability threshold that triggers an alert when crossed
-		"URLs": [ 						// the array of URLs of
-			"https://youtube.com",
-			"https://www.youtube.com",
-			"https://apple.com",
-			"https://www.datadoghq.com"
-		]
+			"RetainedResults": 1000, 	// the number of poll results that are retained for a given website
+			"Threshold": 0.8			// the availability threshold that triggers an alert when crossed
+		},
+		"Websites": [					// Websites to poll
+			{
+				"URL": "https://www.datadoghq.com",
+				"Interval": 5,						// Defaults can be overridden on a per-website basis
+				"RetainedResults": 5000,
+				"Threshold": 0.95
+			},
+			{
+				"URL": "https://www.datadoghq.com",
+				"Interval": 3
+			},
+			{ "URL": "https://apple.com" },
+			{ "URL": "https://www.datadoghq.com" }
+  		]
 	}
 */
 package main

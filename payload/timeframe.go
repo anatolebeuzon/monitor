@@ -10,6 +10,8 @@ type Timeframe struct {
 	Seconds   int
 }
 
+// NewTimeframe returns a new Timeframe, with the current date as the EndDate.
+// The timespan input should be the duration, in seconds, between StartDate and EndDate.
 func NewTimeframe(timespan int) Timeframe {
 	ref := time.Now()
 	return Timeframe{ref.Add(-time.Duration(timespan) * time.Second), ref, timespan}

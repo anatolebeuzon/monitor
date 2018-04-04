@@ -2,7 +2,7 @@
 This file contains the main logic of the dashboard, including:
 - the init logic of the dashboard
 - the layout computation
-- the handling of dashboard events (such as keyboard events)
+- the handling of dashboard events (such as keyboard events or window resize)
 - the exit logic
 */
 
