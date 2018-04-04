@@ -56,6 +56,11 @@ func (p *UIPage) Refresh(s *Store) {
 	s.RLock()
 	defer s.RUnlock()
 
+	// Ensure that the current index is not out of range
+	if s.CurrentIdx >= len(s.URLs) {
+		return
+	}
+
 	url := s.URLs[s.CurrentIdx]
 
 	// Update top-level widgets
