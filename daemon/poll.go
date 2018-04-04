@@ -23,13 +23,13 @@ import (
 // The polling interval and the metrics retention policy are defined by the config file.
 func (w *Website) SchedulePolls() {
 	for range time.Tick(time.Duration(w.Interval) * time.Second) {
-		w.Poll(w.RetainedResults)
+		w.Poll()
 	}
 }
 
 // Poll makes a GET request to a website, measuring various times
 // throughout the HTTP request, and reading the HTTP response code.
-func (w *Website) Poll(retainedResults int) {
+func (w *Website) Poll() {
 
 	// Create request
 	req, err := http.NewRequest("GET", w.URL, nil)
@@ -88,7 +88,7 @@ func (w *Website) Poll(retainedResults int) {
 	}
 
 	// Save the poll result at the end of the website's poll results
-	w.SaveResult(&p, retainedResults)
+	w.SaveResult(&p)
 }
 
 // NewTransport creates a new http.Transport.
@@ -114,13 +114,13 @@ func NewTransport() *http.Transport {
 // If the number of poll results exceeds the user-defined retainedResults parameter,
 // the oldest items are deleted.
 // If retainedResults = 0, no metric is ever deleted.
-func (w *Website) SaveResult(p *PollResult, retainedResults int) {
+func (w *Website) SaveResult(p *PollResult) {
 	w.PollResults.Lock()
 	defer w.PollResults.Unlock()
 
 	i := 0
-	if (retainedResults != 0) && (len(w.PollResults.items) >= retainedResults) {
-		i = len(w.PollResults.items) + 1 - retainedResults
+	if (w.RetainedResults != 0) && (len(w.PollResults.items) >= w.RetainedResults) {
+		i = len(w.PollResults.items) + 1 - w.RetainedResults
 	}
 	w.PollResults.items = append(w.PollResults.items[i:], *p)
 }
