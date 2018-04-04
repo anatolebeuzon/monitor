@@ -34,14 +34,21 @@ type TimeConf struct {
 //
 // The program exits if an error is encountered while reading the config file.
 func ReadConfig(path string) Config {
-	// Get working directory to resolve relative path
-	wd, err := os.Getwd()
-	if err != nil {
-		log.Fatal(err)
+	if path == "" { // Switch to default path
+		path = os.Getenv("GOPATH") + "/src/monitor/cmd/monitord/config.json"
+	} else {
+		// Get working directory to resolve relative path
+		wd, err := os.Getwd()
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		// Create absolute path from relative path
+		path = wd + "/" + path
 	}
 
 	// Read file content
-	data, err := ioutil.ReadFile(wd + "/" + path)
+	data, err := ioutil.ReadFile(path)
 	if err != nil {
 		log.Fatal(err)
 	}

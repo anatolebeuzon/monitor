@@ -43,7 +43,7 @@ import (
 
 func main() {
 	// Load config
-	path := flag.String("config", "config.json", "Config file in JSON format")
+	path := flag.String("config", "", "Path to JSON config file")
 	flag.Parse()
 	config := client.ReadConfig(*path)
 
