@@ -87,6 +87,7 @@ func (d *UIDashboard) BuildLayout() {
 			ui.NewCol(6, 0, &d.page.Right.Errors),
 		),
 		ui.NewRow(ui.NewCol(12, 0, &d.page.Alerts)), // Latest alerts
+		ui.NewRow(ui.NewCol(12, 0, &d.page.Footer)), // Footer with navigation information
 	)
 	ui.Body.Align() // Calculate layout based on window's width
 }

@@ -19,6 +19,7 @@ type UIPage struct {
 	Left    UISide // Stats presented on the left-hand side of the dashboard
 	Right   UISide // Stats presented on the right-hand side of the dashboard
 	Alerts  ui.Par // Shows the latest alerts
+	Footer  ui.Par
 }
 
 // NewUIPage initializes the widgets of the dashboard with the
@@ -36,12 +37,17 @@ func NewUIPage(c *Config) UIPage {
 	Alerts.BorderLabel = "Alerts (aggregated over " + strconv.Itoa(c.Alerts.Timespan) + "s, "
 	Alerts.BorderLabel += "refreshed every " + strconv.Itoa(c.Alerts.Frequency) + "s)"
 
+	Footer := ui.NewPar("Use left/right arrows to navigate, or press Q to quit")
+	Footer.Height = 3
+	Footer.Border = false
+
 	return UIPage{
 		*Title,
 		*Counter,
 		NewUISide(c.Statistics.Left, ui.ColorBlue),
 		NewUISide(c.Statistics.Right, ui.ColorYellow),
 		*Alerts,
+		*Footer,
 	}
 }
 
