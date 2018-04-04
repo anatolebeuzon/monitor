@@ -108,12 +108,12 @@ func (d *UIDashboard) RegisterEventHandlers() {
 		ui.Render(ui.Body)
 	})
 
-	s := d.store
-	s.Lock()
-	defer s.Unlock()
-
 	// Move to the next page when right arrow is pressed
 	ui.Handle("/sys/kbd/<right>", func(ui.Event) {
+		s := d.store
+		s.Lock()
+		defer s.Unlock()
+
 		if s.currentIdx < len(s.URLs)-1 { // if there is a next page
 			s.currentIdx++
 			d.updateUI <- true
@@ -122,6 +122,10 @@ func (d *UIDashboard) RegisterEventHandlers() {
 
 	// Move to the previous page when left arrow is pressed
 	ui.Handle("/sys/kbd/<left>", func(ui.Event) {
+		s := d.store
+		s.Lock()
+		defer s.Unlock()
+
 		if s.currentIdx >= 1 { // if there is a previous page
 			s.currentIdx--
 			d.updateUI <- true
