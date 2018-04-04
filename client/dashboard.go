@@ -42,9 +42,11 @@ func (d *Dashboard) Show() {
 	for {
 		select {
 		case <-d.updateUI:
-			// New data is available, so refresh the currently displayed DashboardPage
-			d.page.Refresh(d.currentIdx, *d.store)
+			// Refresh the widgets with the latest data
+			d.page.Refresh(d.currentIdx, d.store)
 
+			// Rerender UI
+			ui.Render(ui.Body)
 		case <-close:
 			// Quit the dashboard
 			return

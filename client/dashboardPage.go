@@ -43,7 +43,10 @@ func NewDashboardPage(c *Config) DashboardPage {
 }
 
 // Refresh rerenders the DashboardPage using the latest data available.
-func (p *DashboardPage) Refresh(currentIdx int, s Store) {
+func (p *DashboardPage) Refresh(currentIdx int, s *Store) {
+	s.RLock()
+	defer s.RUnlock()
+
 	url := s.URLs[currentIdx]
 
 	// Update top-level widgets
@@ -54,7 +57,4 @@ func (p *DashboardPage) Refresh(currentIdx int, s Store) {
 	// Update stats on both sides
 	p.Left.Refresh(s.Metrics[url][p.Left.Timespan])
 	p.Right.Refresh(s.Metrics[url][p.Right.Timespan])
-
-	// Rerender UI
-	ui.Render(ui.Body)
 }

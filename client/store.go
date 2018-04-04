@@ -3,11 +3,13 @@ package client
 import (
 	"monitor/payload"
 	"strconv"
+	"sync"
 	"time"
 )
 
 // Store contains all the data needed by the dashboard
 type Store struct {
+	sync.RWMutex
 	URLs    []string
 	Metrics Metrics
 	Alerts  Alerts

@@ -62,6 +62,7 @@ func (s *Scheduler) Receive(store *Store) {
 	for {
 		select {
 		case stats := <-s.Received.stats:
+			store.Lock()
 			for url, metric := range stats.Metrics {
 				// Check that URL is registered
 				if _, ok := store.Metrics[url]; !ok {
@@ -82,12 +83,15 @@ func (s *Scheduler) Receive(store *Store) {
 					AvgRespHist: history,
 				}
 			}
+			store.Unlock()
 			s.UpdateUI <- true
 
 		case alerts := <-s.Received.alerts:
+			store.Lock()
 			for url, alert := range alerts {
 				store.Alerts[url] = append(store.Alerts[url], alert)
 			}
+			store.Unlock()
 			s.UpdateUI <- true
 		}
 	}
