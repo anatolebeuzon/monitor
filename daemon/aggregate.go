@@ -1,5 +1,5 @@
 /*
-OK
+Not OK, fix comments about startIdx
 
 This file contains the logic regarding poll results aggregation, such as:
 - getting the poll results of the last n seconds
@@ -11,24 +11,24 @@ This file contains the logic regarding poll results aggregation, such as:
 package daemon
 
 import (
+	"fmt"
 	"monitor/payload"
 	"time"
 )
 
 // Aggregate returns a payload.Metric containing the statistics for the website,
 // aggregated over the specified timespan in seconds.
-func (w *Website) Aggregate(timespan int) payload.Metric {
+func (w *Website) Aggregate(tf payload.Timeframe) payload.Metric {
 	// Copy poll results to ensure that they are not modified by
 	// concurrent functions while results are being aggregated
 	// TODO: avoid this somehow?
-	p := w.PollResults
-	startIdx := p.StartIndexFor(timespan)
+	p := w.PollResults.Extract(tf)
 	return payload.Metric{
-		Availability:     p.Availability(startIdx),
-		Average:          p.Average(startIdx),
-		Max:              p.Max(startIdx),
-		StatusCodeCounts: p.CountCodes(startIdx),
-		ErrorCounts:      p.CountErrors(startIdx),
+		Availability:     p.Availability(),
+		Average:          p.Average(),
+		Max:              p.Max(),
+		StatusCodeCounts: p.CountCodes(),
+		ErrorCounts:      p.CountErrors(),
 	}
 }
 
@@ -50,37 +50,43 @@ func (w *Website) Aggregate(timespan int) payload.Metric {
 // and given timespan = 180 (seconds), StartIndexFor(timespan) would return 2,
 // as it is the index of the first PollResult of the slice
 // that occured in the timeframe [now, now - 180 seconds]
-func (p PollResults) StartIndexFor(timespan int) int {
-	threshold := time.Now().Add(-time.Duration(timespan) * time.Second)
-
+func (p PollResults) Extract(tf payload.Timeframe) PollResults {
 	// Traverse the slice from the end to the beginning
 	// (generally faster, as p might be a very long slice
 	// if a large number of poll results are retained)
+	var startIdx, endIdx int
 	for i := len(p) - 1; i >= 0; i-- {
-		if p[i].Date.Before(threshold) {
-			return i + 1
+		if endIdx == 0 && p[i].Date.Before(tf.EndDate) {
+			// if endIdx hasn't been set yet and if the current date is in the timeframe
+			endIdx = i + 1
+		}
+		if p[i].Date.Before(tf.StartDate) {
+			startIdx = i + 1
+			break
 		}
 	}
-	return 0
+	r := p[startIdx:endIdx]
+	fmt.Println(tf, "\n", p, "\n", startIdx, "->", endIdx, "\n", r, "\n")
+	return r
 }
 
 // Availability returns the average availability based on the latest poll results,
 // starting from startIdx. The return value is between 0 and 1.
-func (p PollResults) Availability(startIdx int) float64 {
-	if len(p)-startIdx == 0 {
-		// No recent enough poll result is available, so
+func (p PollResults) Availability() float64 {
+	if len(p) == 0 {
+		// No poll result is available in the timeframe, so
 		// we cannot know whether the website is up or down.
 		// In this case, act as if the website is down.
 		return float64(0)
 	}
 
 	c := 0
-	for i := startIdx; i < len(p); i++ {
-		if p[i].IsValid() {
+	for _, r := range p {
+		if r.IsValid() {
 			c++
 		}
 	}
-	return float64(c) / float64(len(p)-startIdx)
+	return float64(c) / float64(len(p))
 }
 
 // IsValid returns whether the poll result is considered valid or not.
@@ -95,23 +101,22 @@ func (p *PollResult) IsValid() bool {
 // Average returns a payload.Timing, in which each duration (DNS, TCP, TLS...)
 // is the average of the respective durations of the selected poll results
 // (here, "selected" poll results refer to the poll results from index startIdx onwards).
-func (p PollResults) Average(startIdx int) (avg payload.Timing) {
+func (p PollResults) Average() (avg payload.Timing) {
 
 	// Perform an attribute-wise sum of durations
-	for i := startIdx; i < len(p); i++ {
-		curr := p[i].Timing
-		avg.DNS += curr.DNS
-		avg.TCP += curr.TCP
-		avg.TLS += curr.TLS
-		avg.Server += curr.Server
-		avg.TTFB += curr.TTFB
-		avg.Transfer += curr.Transfer
-		avg.Response += curr.Response
+	for _, r := range p {
+		avg.DNS += r.Timing.DNS
+		avg.TCP += r.Timing.TCP
+		avg.TLS += r.Timing.TLS
+		avg.Server += r.Timing.Server
+		avg.TTFB += r.Timing.TTFB
+		avg.Transfer += r.Timing.Transfer
+		avg.Response += r.Timing.Response
 	}
 
 	// Divide by the number of elements to get the average
-	if len(p)-startIdx != 0 {
-		n := time.Duration(len(p) - startIdx)
+	if len(p) != 0 {
+		n := time.Duration(len(p))
 		avg.DNS /= n
 		avg.TCP /= n
 		avg.TLS /= n
@@ -127,16 +132,15 @@ func (p PollResults) Average(startIdx int) (avg payload.Timing) {
 // Max returns a payload.Timing, in which each duration (DNS, TCP, TLS...)
 // is the maximum of the respective durations of the selected poll results
 // (here, "selected" poll results refer to the poll results from index startIdx onwards).
-func (p PollResults) Max(startIdx int) (max payload.Timing) {
-	for i := startIdx; i < len(p); i++ {
-		curr := p[i].Timing
-		max.DNS = maxDuration(curr.DNS, max.DNS)
-		max.TCP = maxDuration(curr.TCP, max.TCP)
-		max.TLS = maxDuration(curr.TLS, max.TLS)
-		max.Server = maxDuration(curr.Server, max.Server)
-		max.TTFB = maxDuration(curr.TTFB, max.TTFB)
-		max.Transfer = maxDuration(curr.Transfer, max.Transfer)
-		max.Response = maxDuration(curr.Response, max.Response)
+func (p PollResults) Max() (max payload.Timing) {
+	for _, r := range p {
+		max.DNS = maxDuration(r.Timing.DNS, max.DNS)
+		max.TCP = maxDuration(r.Timing.TCP, max.TCP)
+		max.TLS = maxDuration(r.Timing.TLS, max.TLS)
+		max.Server = maxDuration(r.Timing.Server, max.Server)
+		max.TTFB = maxDuration(r.Timing.TTFB, max.TTFB)
+		max.Transfer = maxDuration(r.Timing.Transfer, max.Transfer)
+		max.Response = maxDuration(r.Timing.Response, max.Response)
 	}
 	return
 }
@@ -151,13 +155,12 @@ func maxDuration(d1, d2 time.Duration) time.Duration {
 
 // CountCodes counts the HTTP response codes in the latest poll results, starting from startIdx.
 // The return value maps from each HTTP response code encountered to the number of such codes.
-func (p PollResults) CountCodes(startIdx int) map[int]int {
+func (p PollResults) CountCodes() map[int]int {
 	codesCount := make(map[int]int)
-	for i := startIdx; i < len(p); i++ {
-		code := p[i].StatusCode
-		if code != 0 {
+	for _, r := range p {
+		if r.StatusCode != 0 {
 			// If the request led to an HTTP response code, and not an error
-			codesCount[code]++
+			codesCount[r.StatusCode]++
 		}
 	}
 	return codesCount
@@ -165,12 +168,11 @@ func (p PollResults) CountCodes(startIdx int) map[int]int {
 
 // CountErrors counts the errors in the latest poll results, starting from startIdx.
 // The return value maps from each error string encountered to the number of such errors.
-func (p PollResults) CountErrors(startIdx int) map[string]int {
+func (p PollResults) CountErrors() map[string]int {
 	errorsCount := make(map[string]int)
-	for i := startIdx; i < len(p); i++ {
-		error := p[i].Error
-		if error != nil {
-			errorsCount[error.Error()]++
+	for _, r := range p {
+		if r.Error != nil {
+			errorsCount[r.Error.Error()]++
 		}
 	}
 	return errorsCount

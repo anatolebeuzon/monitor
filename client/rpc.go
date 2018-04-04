@@ -23,8 +23,9 @@ func (s *Scheduler) CallRPC(method string, args interface{}, reply interface{}) 
 
 // GetStats gets the latest websites Stats from the daemon via RPC.
 func (s *Scheduler) GetStats(timespan int) {
+	tf := payload.NewTimeframe(timespan)
 	var stats payload.Stats
-	if err := s.CallRPC("Handler.Stats", &timespan, &stats); err != nil {
+	if err := s.CallRPC("Handler.Stats", &tf, &stats); err != nil {
 		log.Fatal(err)
 	}
 	s.Received.stats <- stats
@@ -32,8 +33,9 @@ func (s *Scheduler) GetStats(timespan int) {
 
 // GetAlerts gets the latest websites Alerts from the daemon via RPC.
 func (s *Scheduler) GetAlerts(timespan int) {
+	tf := payload.NewTimeframe(timespan)
 	var alerts payload.Alerts
-	if err := s.CallRPC("Handler.Alerts", &timespan, &alerts); err != nil {
+	if err := s.CallRPC("Handler.Alerts", &tf, &alerts); err != nil {
 		log.Fatal(err)
 	}
 	s.Received.alerts <- alerts

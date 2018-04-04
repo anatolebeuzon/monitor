@@ -6,9 +6,9 @@ import (
 
 // Stats contains, for a given timespan (in seconds), the aggregated
 // poll results for all the websites polled by the daemon.
-type Stats struct { // TODO: add Date?
-	Timespan int               // Number of past seconds for which results are aggregated
-	Metrics  map[string]Metric // Maps from a website URL to a Metric
+type Stats struct {
+	Timeframe Timeframe         // Time window use to aggregate results
+	Metrics   map[string]Metric // Maps from a website URL to a Metric
 }
 
 // A Metric contains the aggregated poll results of one website.
@@ -49,11 +49,6 @@ type Timing struct {
 	// It is equal to the sum of the TTFB and the Transfer time:
 	// Response = DNS + TCP + TLS + Server + Transfer
 	Response time.Duration
-}
-
-// NewStats returns a new Stats object, with an initialized Metrics map.
-func NewStats(timespan int) Stats {
-	return Stats{timespan, make(map[string]Metric)}
 }
 
 // ToSlice converts a Timing to a slice of durations, to allow for easier manipulation and display.

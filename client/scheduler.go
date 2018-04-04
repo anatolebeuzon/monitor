@@ -69,7 +69,7 @@ func (s *Scheduler) Receive(store *Store) {
 					store.URLs = append(store.URLs, url)
 				}
 
-				history := store.Metrics[url][stats.Timespan].AvgRespHist
+				history := store.Metrics[url][stats.Timeframe.Seconds].AvgRespHist
 				start := 0
 				itemsToKeep := 30
 				if len(history) >= itemsToKeep {
@@ -77,7 +77,7 @@ func (s *Scheduler) Receive(store *Store) {
 				}
 				history = append(history[start:], metric.Average.Response)
 
-				store.Metrics[url][stats.Timespan] = Metric{
+				store.Metrics[url][stats.Timeframe.Seconds] = Metric{
 					Latest:      metric,
 					AvgRespHist: history,
 				}

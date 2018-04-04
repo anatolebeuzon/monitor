@@ -41,7 +41,7 @@ func (a Alerts) String(url string) (str string) {
 			str += "up. "
 		}
 		str += "availability=" + strconv.FormatFloat(alert.Availability, 'f', 3, 64)
-		str += ", time=" + alert.Date.String() + "\n"
+		str += ", time=" + alert.Timeframe.EndDate.String() + "\n"
 	}
 	return
 }

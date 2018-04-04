@@ -26,10 +26,10 @@ type Handler Websites
 // the specified timespan in seconds) as the reply value.
 //
 // Stats is meant to be used through an RPC call.
-func (h *Handler) Stats(timespan int, p *payload.Stats) error {
-	*p = payload.NewStats(timespan)
+func (h *Handler) Stats(tf payload.Timeframe, p *payload.Stats) error {
+	*p = payload.Stats{tf, make(map[string]payload.Metric)}
 	for _, website := range *h {
-		(*p).Metrics[website.URL] = website.Aggregate(timespan)
+		(*p).Metrics[website.URL] = website.Aggregate(tf)
 	}
 	return nil
 }
@@ -41,22 +41,21 @@ func (h *Handler) Stats(timespan int, p *payload.Stats) error {
 // against the threshold, and creates an alert if the threshold is crossed.
 //
 // Alerts is meant to be used through an RPC call.
-func (h *Handler) Alerts(timespan int, a *payload.Alerts) error {
+func (h *Handler) Alerts(tf payload.Timeframe, a *payload.Alerts) error {
 	*a = make(payload.Alerts)
 	for i, website := range *h {
 		// Get average availability
-		startIdx := website.PollResults.StartIndexFor(timespan)
-		avail := website.PollResults.Availability(startIdx)
+		avail := website.PollResults.Extract(tf).Availability()
 
 		if (avail < website.Threshold) && !website.DownAlertSent {
 			// if the website is considered down but no alert for this event was sent yet
 			// create a "website is down" alert
-			(*a)[website.URL] = payload.NewAlert(avail, true)
+			(*a)[website.URL] = payload.Alert{Timeframe: tf, Availability: avail, BelowThreshold: true}
 			(*h)[i].DownAlertSent = true
 		} else if (avail >= website.Threshold) && website.DownAlertSent {
 			// if the website is considered up but website was last reported down
 			// create a "website has recovered" alert
-			(*a)[website.URL] = payload.NewAlert(avail, false)
+			(*a)[website.URL] = payload.Alert{Timeframe: tf, Availability: avail, BelowThreshold: false}
 			(*h)[i].DownAlertSent = false
 		}
 	}
