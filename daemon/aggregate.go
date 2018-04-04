@@ -1,5 +1,5 @@
 /*
-Not
+OK
 
 This file contains the logic regarding poll results aggregation, such as:
 - getting the poll results of the last n seconds
