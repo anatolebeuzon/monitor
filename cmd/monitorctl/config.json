@@ -12,6 +12,6 @@
   },
   "Alerts": {
     "Frequency": 4,
-    "Timespan": 120
+    "Timespan": 20
   }
 }
