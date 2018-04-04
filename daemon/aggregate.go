@@ -11,7 +11,6 @@ This file contains the logic regarding poll results aggregation, such as:
 package daemon
 
 import (
-	"fmt"
 	"monitor/payload"
 	"time"
 )
@@ -66,7 +65,6 @@ func (p PollResults) Extract(tf payload.Timeframe) PollResults {
 		}
 	}
 	r := p[startIdx:endIdx]
-	fmt.Println(tf, "\n", p, "\n", startIdx, "->", endIdx, "\n", r, "\n")
 	return r
 }
 
@@ -94,7 +92,7 @@ func (p PollResults) Availability() float64 {
 // To be considered valid, the associated request must satisfy two conditions:
 // the request did not end with an error, and
 // the HTTP response code is neither a Client error nor a Server error.
-func (p *PollResult) IsValid() bool {
+func (p PollResult) IsValid() bool {
 	return (p.Error == nil) && (p.StatusCode < 400)
 }
 
