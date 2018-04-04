@@ -21,9 +21,9 @@ import (
 
 // SchedulePolls schedules regular polls for the website. It never returns.
 // The polling interval and the metrics retention policy are defined by the config file.
-func (w *Website) SchedulePolls(p PollConfig) {
-	for range time.Tick(time.Duration(p.Interval) * time.Second) {
-		w.Poll(p.RetainedResults)
+func (w *Website) SchedulePolls() {
+	for range time.Tick(time.Duration(w.Interval) * time.Second) {
+		w.Poll(w.RetainedResults)
 	}
 }
 

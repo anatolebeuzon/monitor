@@ -1,4 +1,4 @@
-/*
+/* TODO: update sample JSON config
 monitord is a daemon that polls websites, gather related metrics,
 and publishes them through an RPC API.
 
@@ -55,15 +55,12 @@ func main() {
 	flag.Parse()
 	config := daemon.ReadConfig(*path)
 
-	websites := daemon.NewWebsites(config.URLs)
-	websites.InitPolls(config.Poll)
+	websites := daemon.NewWebsites(&config)
+	websites.InitPolls()
 
 	// Create RPC handler and start serving requests
-	h := &daemon.Handler{
-		Websites:       &websites,
-		AlertThreshold: config.AlertThreshold,
-	}
-	daemon.ServeRPC(h, config.ListeningPort, interrupt)
+	h := daemon.Handler(websites)
+	daemon.ServeRPC(&h, config.ListeningPort, interrupt)
 
 	return
 }

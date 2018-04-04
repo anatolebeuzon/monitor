@@ -21,8 +21,11 @@ type Websites []Website
 // A Website object contains the identity (URL) of the website,
 // as well as all the corresponding poll results.
 type Website struct {
-	URL         string
-	PollResults PollResults
+	URL             string
+	Interval        int     // Interval, in seconds, between two polls
+	RetainedResults int     // Number of poll results that should be kept. If set to 0, no poll result is ever deleted
+	Threshold       float64 // Availability threshold that should trigger an alert when crossed
+	PollResults     PollResults
 
 	// DownAlertSent is true if at the last alert check from the front-end,
 	// the aggregate availability was below the threshold. Keeping this information:
@@ -57,17 +60,36 @@ type PollResult struct {
 //
 // NB: different URLs of the same domain (purposefully) lead
 // to the creation of multiple Website objects.
-func NewWebsites(URLs []string) (w Websites) {
-	for _, url := range URLs {
-		w = append(w, Website{URL: url})
+func NewWebsites(c *Config) (w Websites) {
+	for _, website := range c.Websites {
+		// Create website object
+		currW := Website{
+			URL:             website.URL,
+			Interval:        website.Interval,
+			RetainedResults: website.RetainedResults,
+			Threshold:       website.Threshold,
+		}
+
+		// Fallback to defaults if website-specific attributes not used
+		if currW.Interval == 0 {
+			currW.Interval = c.Default.Interval
+		}
+		if currW.RetainedResults == 0 {
+			currW.RetainedResults = c.Default.RetainedResults
+		}
+		if currW.Threshold == 0 {
+			currW.Threshold = c.Default.Threshold
+		}
+
+		w = append(w, currW)
 	}
 	return
 }
 
 // InitPolls launches, for each website, a poll scheduler in a separate goroutine.
-func (w Websites) InitPolls(p PollConfig) {
+func (w Websites) InitPolls() {
 	for i := range w {
-		go w[i].SchedulePolls(p)
+		go w[i].SchedulePolls()
 	}
 	fmt.Println("All checks launched.")
 }

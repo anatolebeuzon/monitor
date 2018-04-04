@@ -1,14 +1,15 @@
 {
   "ListeningPort": 1234,
-  "Poll": {
+  "Default": {
     "Interval": 2,
-    "RetainedResults": 1000000
+    "RetainedResults": 1000000,
+    "Threshold": 0.8
   },
-  "AlertThreshold": 0.8,
-  "URLs": [
-    "ht://youtube.com",
-    "https://www.youtube.com",
-    "https://apple.com",
-    "https://www.datadoghq.com"
+  "Websites": [
+    { "URL": "ht://youtube.com" },
+    { "URL": "http://youtube.com", "Interval": 3 },
+    { "URL": "https://www.youtube.com" },
+    { "URL": "https://apple.com" },
+    { "URL": "https://www.datadoghq.com" }
   ]
 }

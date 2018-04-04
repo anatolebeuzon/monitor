@@ -20,10 +20,7 @@ import (
 
 // Handler contains all the necessary data to satisfy RPC calls.
 // It will be registered as the RPC receiver and its methods will be published.
-type Handler struct {
-	Websites       *Websites
-	AlertThreshold float64
-}
+type Handler Websites
 
 // Stats puts the latest websites stats (aggregated over
 // the specified timespan in seconds) as the reply value.
@@ -31,7 +28,7 @@ type Handler struct {
 // Stats is meant to be used through an RPC call.
 func (h *Handler) Stats(timespan int, p *payload.Stats) error {
 	*p = payload.NewStats(timespan)
-	for _, website := range *h.Websites {
+	for _, website := range *h {
 		(*p).Metrics[website.URL] = website.Aggregate(timespan)
 	}
 	return nil
@@ -46,21 +43,21 @@ func (h *Handler) Stats(timespan int, p *payload.Stats) error {
 // Alerts is meant to be used through an RPC call.
 func (h *Handler) Alerts(timespan int, a *payload.Alerts) error {
 	*a = make(payload.Alerts)
-	for i, website := range *h.Websites {
+	for i, website := range *h {
 		// Get average availability
 		startIdx := website.PollResults.StartIndexFor(timespan)
 		avail := website.PollResults.Availability(startIdx)
 
-		if (avail < h.AlertThreshold) && !website.DownAlertSent {
+		if (avail < website.Threshold) && !website.DownAlertSent {
 			// if the website is considered down but no alert for this event was sent yet
 			// create a "website is down" alert
 			(*a)[website.URL] = payload.NewAlert(avail, true)
-			(*h.Websites)[i].DownAlertSent = true
-		} else if (avail >= h.AlertThreshold) && website.DownAlertSent {
+			(*h)[i].DownAlertSent = true
+		} else if (avail >= website.Threshold) && website.DownAlertSent {
 			// if the website is considered up but website was last reported down
 			// create a "website has recovered" alert
 			(*a)[website.URL] = payload.NewAlert(avail, false)
-			(*h.Websites)[i].DownAlertSent = false
+			(*h)[i].DownAlertSent = false
 		}
 	}
 	return nil

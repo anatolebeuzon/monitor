@@ -15,16 +15,23 @@ import (
 
 // Config represents the user-defined configuration of the daemon.
 type Config struct {
-	ListeningPort  int        // Port on which the RPC server listens
-	Poll           PollConfig // See PollConfig struct below
-	AlertThreshold float64    // Availability threshold that should trigger an alert when crossed
-	URLs           []string   // List of URLs of websites to poll
+	ListeningPort int // Port on which the RPC server listens
+	Default       struct {
+		Interval        int     // Interval, in seconds, between two polls to a given website
+		RetainedResults int     // Number of poll results that should be kept. If set to 0, no poll result is ever deleted
+		Threshold       float64 // Availability threshold that should trigger an alert when crossed
+	}
+	Websites []WebsiteConfig // List of websites to poll
 }
 
-// PollConfig defines the behavior of the poller.
-type PollConfig struct {
-	Interval        int // Interval between two polls, for each websites
-	RetainedResults int // Number of poll results that should be kept. If set to 0, no poll result is ever deleted
+// WebsiteConfig represents the configuration of a specific website.
+type WebsiteConfig struct {
+	URL string
+
+	// If Interval, RetainedResults or Threshold are not filled, Config.Default will be used instead
+	Interval        int
+	RetainedResults int
+	Threshold       float64
 }
 
 // ReadConfig reads the config file and returns the associated Config object.
