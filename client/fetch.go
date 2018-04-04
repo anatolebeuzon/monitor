@@ -64,7 +64,7 @@ func (f *Fetcher) GetStats(timespan int) {
 	tf := payload.NewTimeframe(timespan)
 	var stats payload.Stats
 	if err := f.CallRPC("Handler.Stats", &tf, &stats); err != nil {
-		log.Fatal(err)
+		log.Fatal(err.Error() + "; is the daemon running?")
 	}
 
 	// Save the resulting stats to the store
