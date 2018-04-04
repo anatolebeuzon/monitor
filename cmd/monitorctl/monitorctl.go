@@ -48,10 +48,10 @@ func main() {
 	store := client.NewStore()
 
 	// Create new scheduler to regularly poll the daemon
-	s := client.NewScheduler(config, store)
-	s.Init() // start polling
+	f := client.NewFetcher(config, store)
+	f.Init() // start polling
 
 	// Create and display a new dashboard
-	d := client.NewDashboard(store, &config, s.UpdateUI)
+	d := client.NewDashboard(store, &config, f.UpdateUI)
 	d.Show()
 }
