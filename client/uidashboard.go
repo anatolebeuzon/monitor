@@ -100,6 +100,14 @@ func (d *UIDashboard) RegisterEventHandlers() {
 		ui.StopLoop()
 	})
 
+	// Handle window resize
+	ui.Handle("/sys/wnd/resize", func(ui.Event) {
+		ui.Body.Width = ui.TermWidth()
+		ui.Body.Align()
+		ui.Clear()
+		ui.Render(ui.Body)
+	})
+
 	s := d.store
 	s.Lock()
 	defer s.Unlock()
