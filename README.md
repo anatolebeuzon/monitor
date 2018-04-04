@@ -43,7 +43,16 @@ No min showed, by choice.
 
 ## Requirements
 
+Go 1.X
+Dep
+
 ## Quick start
+
+* Move the `monitor` folder to `$GOPATH/src`
+* Install dependencies : `go get github.com/gizak/termui`
+* Build the binaries :
+
+# Build
 
 ### Building
 
@@ -71,3 +80,7 @@ I believe it is an acceptable trade-off, as the `client` and `daemon` packages w
 * Improve network resiliency
 * Adaptive dashboard height
 * dashboard: accept more than two timeframes
+
+```
+
+```

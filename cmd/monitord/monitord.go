@@ -59,7 +59,7 @@ func main() {
 	signal.Notify(interrupt, os.Interrupt)
 
 	// Load config
-	path := flag.String("config", "", "Config file in JSON format")
+	path := flag.String("config", "", "Path to JSON config file")
 	flag.Parse()
 	config := daemon.ReadConfig(*path)
 

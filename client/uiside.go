@@ -1,6 +1,6 @@
 /*
 This file handles the display and update logic of UI elements presenting
-statistics on the left and right frames of the dashboard.
+statistics on the left and right frames ("sides") of the dashboard.
 */
 
 package client
