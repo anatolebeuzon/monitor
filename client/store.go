@@ -2,7 +2,6 @@ package client
 
 import (
 	"monitor/payload"
-	"strconv"
 	"sync"
 	"time"
 )
@@ -33,18 +32,4 @@ func NewStore() *Store {
 		Metrics: make(Metrics),
 		Alerts:  make(Alerts),
 	}
-}
-
-func (a Alerts) String(url string) (str string) {
-	for _, alert := range a[url] {
-		str += "Website " + url + " is "
-		if alert.BelowThreshold {
-			str += "down. "
-		} else {
-			str += "up. "
-		}
-		str += "availability=" + strconv.FormatFloat(alert.Availability, 'f', 3, 64)
-		str += ", time=" + alert.Timeframe.EndDate.String() + "\n"
-	}
-	return
 }

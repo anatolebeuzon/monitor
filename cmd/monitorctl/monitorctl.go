@@ -52,6 +52,6 @@ func main() {
 	f.Init() // start polling
 
 	// Create and display a new dashboard
-	d := client.NewDashboard(store, &config, f.UpdateUI)
+	d := client.NewUIDashboard(store, &config, f.UpdateUI)
 	d.Show()
 }

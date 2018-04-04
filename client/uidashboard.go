@@ -6,22 +6,22 @@ import (
 	ui "github.com/gizak/termui"
 )
 
-// Dashboard represents a dashboard, including the UI elements (widgets)
+// UIDashboard represents a dashboard, including the UI elements (widgets)
 // and a pointer to the underlying data.
-type Dashboard struct {
-	store    *Store        // Pointer to the data that the dashboard can present
-	page     DashboardPage // page contains the widgets that are presented on the dashboard
-	updateUI chan bool     // updateUI signals when the dashboard should be rerendered (e.g. when new data arrives)
+type UIDashboard struct {
+	store    *Store    // Pointer to the data that the dashboard can present
+	page     UIPage    // page contains the widgets that are presented on the dashboard
+	updateUI chan bool // updateUI signals when the dashboard should be rerendered (e.g. when new data arrives)
 }
 
-// NewDashboard returns a new dashboard.
-func NewDashboard(s *Store, c *Config, updateUI chan bool) (d Dashboard) {
-	return Dashboard{s, NewDashboardPage(c), updateUI}
+// NewUIDashboard returns a new dashboard.
+func NewUIDashboard(s *Store, c *Config, updateUI chan bool) UIDashboard {
+	return UIDashboard{s, NewUIPage(c), updateUI}
 }
 
 // Show displays the dashboard on the console.
 // It blocks until the user exits the dashboard.
-func (d *Dashboard) Show() {
+func (d *UIDashboard) Show() {
 	// Initialize termui library
 	if err := ui.Init(); err != nil {
 		log.Fatal(err)
@@ -57,7 +57,7 @@ func (d *Dashboard) Show() {
 //
 // It should only be called once.
 // It does not need to be called again when dashboard data is updated.
-func (d *Dashboard) BuildLayout() {
+func (d *UIDashboard) BuildLayout() {
 	ui.Body.AddRows(
 		ui.NewRow(
 			ui.NewCol(2, 5, &d.page.Title),    // Website URL
@@ -85,7 +85,7 @@ func (d *Dashboard) BuildLayout() {
 
 // RegisterEventHandlers registers the keyboard
 // events to which the dashboard will respond.
-func (d *Dashboard) RegisterEventHandlers() {
+func (d *UIDashboard) RegisterEventHandlers() {
 	// Exit the dashboard when "Q" key is pressed
 	ui.Handle("/sys/kbd/q", func(ui.Event) {
 		ui.StopLoop()

@@ -50,9 +50,3 @@ type Timing struct {
 	// Response = DNS + TCP + TLS + Server + Transfer
 	Response time.Duration
 }
-
-// ToSlice converts a Timing to a slice of durations, to allow for easier manipulation and display.
-// TODO: move this to the dashboard?
-func (t *Timing) ToSlice() []time.Duration {
-	return []time.Duration{t.DNS, t.TCP, t.TLS, t.Server, t.TTFB, t.Transfer, t.Response}
-}

@@ -9,10 +9,10 @@ import (
 	ui "github.com/gizak/termui"
 )
 
-// DashboardSide contains the UI objects used to display the stats
+// UISide contains the UI objects used to display the stats
 // on either side of the dashboard.
-type DashboardSide struct {
-	Timespan     int          // The timespan by which metrics are aggregated
+type UISide struct {
+	Timespan     int          // The timespan by which metrics are aggregated on this side
 	Title        ui.Par       // Title of the aggregate
 	Availability ui.Gauge     // Availability gauge
 	Breakdown    ui.Table     // HTTP lifecycle steps durations
@@ -21,9 +21,9 @@ type DashboardSide struct {
 	Errors       ui.Par       // Latest client (non-HTTP) errors
 }
 
-// NewDashboardSide initializes the widgets of the dashboard side with the
-// appropriate UI parameters and returns a new DashboardPage.
-func NewDashboardSide(t TimeConf, color ui.Attribute) DashboardSide {
+// NewUISide initializes the widgets of the dashboard side with the
+// appropriate UI parameters and returns a new UISide.
+func NewUISide(t TimeConf, color ui.Attribute) UISide {
 	Title := ui.NewPar("")
 	Title.Text = "Aggregated over " + strconv.Itoa(t.Timespan) + "s"
 	Title.Text += " (refreshed every " + strconv.Itoa(t.Frequency) + "s)"
@@ -66,7 +66,7 @@ func NewDashboardSide(t TimeConf, color ui.Attribute) DashboardSide {
 	Errors.Height = 7
 	Errors.BorderFg = color
 
-	return DashboardSide{
+	return UISide{
 		t.Timespan,
 		*Title,
 		*Availability,
@@ -78,7 +78,7 @@ func NewDashboardSide(t TimeConf, color ui.Attribute) DashboardSide {
 }
 
 // Refresh updates the DashboardSide using the latest data available.
-func (s *DashboardSide) Refresh(m Metric) {
+func (s *UISide) Refresh(m Metric) {
 	// Update availability gauge
 	s.Availability.Percent = int(m.Latest.Availability * 100)
 
@@ -93,8 +93,8 @@ func (s *DashboardSide) Refresh(m Metric) {
 	}
 
 	// Update request timing breakdown
-	s.Breakdown.Rows[1] = ToString("Avg", m.Latest.Average.ToSlice())
-	s.Breakdown.Rows[2] = ToString("Max", m.Latest.Max.ToSlice())
+	s.Breakdown.Rows[1] = ToString("Avg", m.Latest.Average)
+	s.Breakdown.Rows[2] = ToString("Max", m.Latest.Max)
 
 	// Update code counts
 	s.CodeCounts.Data, s.CodeCounts.DataLabels = ExtractResponseCounts(m.Latest)
@@ -141,12 +141,17 @@ func Count(errors map[string]int) (c int) {
 	return
 }
 
-func ToString(prefix string, d []time.Duration) (s []string) {
+func ToString(prefix string, t payload.Timing) (s []string) {
 	s = append(s, prefix)
-	for _, duration := range d {
+	for _, duration := range ToSlice(t) {
 		s = append(s, duration.Round(time.Millisecond).String())
 	}
 	return
+}
+
+// ToSlice converts a Timing to a slice of durations, to allow for easier manipulation and display.
+func ToSlice(t payload.Timing) []time.Duration {
+	return []time.Duration{t.DNS, t.TCP, t.TLS, t.Server, t.TTFB, t.Transfer, t.Response}
 }
 
 func ToFloat64(d []time.Duration) (f []float64) {
