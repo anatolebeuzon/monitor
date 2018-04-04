@@ -43,20 +43,21 @@ No min showed, by choice.
 
 ## Requirements
 
-Go 1.X
-Dep
+* Go 1.10
+* Dep
 
 ## Quick start
 
 * Move the `monitor` folder to `$GOPATH/src`
-* Install dependencies : `go get github.com/gizak/termui`
-* Build the binaries :
+* Install dependencies using [Dep](https://golang.github.io/dep/) : `dep ensure`
+* Build the binaries : `go install monitor/cmd/monitord monitor/cmd/monitorctl`
 
-# Build
+Providing that `$GOPATH/bin` is in your `PATH`, you should be able:
 
-### Building
+* to start the daemon by simply running `monitord`
+* to start the dashboard in a separate window by running `monitorctl`
 
-### Running
+### About config files
 
 ### Testing
 
