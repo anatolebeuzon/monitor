@@ -1,13 +1,13 @@
 {
-  "ListeningPort": 1234,
+  "ListeningPort": 4242,
   "Default": {
-    "Interval": 2,
-    "RetainedResults": 1000000,
+    "Interval": 4,
+    "RetainedResults": 1000,
     "Threshold": 0.8
   },
   "Websites": [
     { "URL": "ht://youtube.com" },
-    { "URL": "http://youtube.com", "Interval": 3 },
+    { "URL": "http://youtube.com" },
     { "URL": "https://www.youtube.com" },
     { "URL": "https://apple.com" },
     { "URL": "https://www.datadoghq.com" }

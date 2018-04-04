@@ -1,17 +1,17 @@
 {
-  "Server": "127.0.0.1:1234",
+  "Server": "127.0.0.1:4242",
   "Statistics": {
     "Left": {
-      "Frequency": 2,
-      "Timespan": 20
+      "Frequency": 10,
+      "Timespan": 600
     },
     "Right": {
-      "Frequency": 10,
-      "Timespan": 40
+      "Frequency": 60,
+      "Timespan": 3600
     }
   },
   "Alerts": {
     "Frequency": 4,
-    "Timespan": 20
+    "Timespan": 120
   }
 }
