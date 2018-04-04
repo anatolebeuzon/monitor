@@ -1,3 +1,11 @@
+/*
+This file contains the main logic of the dashboard, including:
+- the init logic of the dashboard
+- the layout computation
+- the handling of dashboard events (such as keyboard events)
+- the exit logic
+*/
+
 package client
 
 import (

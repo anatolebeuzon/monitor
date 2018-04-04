@@ -1,3 +1,8 @@
+/*
+This file handles the display and update logic of UI elements presenting
+statistics on the left and right frames of the dashboard.
+*/
+
 package client
 
 import (
@@ -77,7 +82,7 @@ func NewUISide(t TimeConf, color ui.Attribute) UISide {
 	}
 }
 
-// Refresh updates the DashboardSide using the latest data available.
+// Refresh updates the UISide using the latest available data.
 func (s *UISide) Refresh(m Metric) {
 	// Update availability gauge
 	s.Availability.Percent = int(m.Latest.Availability * 100)
@@ -93,14 +98,14 @@ func (s *UISide) Refresh(m Metric) {
 	}
 
 	// Update request timing breakdown
-	s.Breakdown.Rows[1] = ToString("Avg", m.Latest.Average)
-	s.Breakdown.Rows[2] = ToString("Max", m.Latest.Max)
+	s.Breakdown.Rows[1] = FormatForTable("Avg", m.Latest.Average)
+	s.Breakdown.Rows[2] = FormatForTable("Max", m.Latest.Max)
 
 	// Update code counts
-	s.CodeCounts.Data, s.CodeCounts.DataLabels = ExtractResponseCounts(m.Latest)
+	s.CodeCounts.DataLabels, s.CodeCounts.Data = ExtractResponseCounts(m.Latest)
 
 	// Update response time graph
-	s.RespGraph.Data = ToFloat64(m.AvgRespHist)
+	s.RespGraph.Data = FormatForGraph(m.AvgRespHist)
 
 	// Update errors list
 	s.Errors.Text = "" // Reset ErrorCounts text
@@ -110,10 +115,15 @@ func (s *UISide) Refresh(m Metric) {
 }
 
 // ExtractResponseCounts reads a metric and returns the corresponding
-// slices that can be used to display a bar chart of response code counts.
+// slices that can be used to display a ui.BarChart of response code counts.
 //
-// For example, the
-func ExtractResponseCounts(m payload.Metric) (codeCounts []int, codeNames []string) {
+// For example, given:
+//	m.StatusCodeCounts = map[int]int{200: 5, 404: 2, 500: 1}
+//	m.ErrorCounts = map[string]int{"dial tcp: i/o timeout": 2}
+// ExtractResponseCounts will return:
+// 	codeNames  = []string{"200", "404", "5O0", "err"}
+//	codeCounts = []int{5, 2, 1, 2}
+func ExtractResponseCounts(m payload.Metric) (codeNames []string, codeCounts []int) {
 	// Gather all the HTTP response codes and sort them in ascending order
 	var codes sort.IntSlice
 	for code := range m.StatusCodeCounts {
@@ -121,10 +131,10 @@ func ExtractResponseCounts(m payload.Metric) (codeCounts []int, codeNames []stri
 	}
 	codes.Sort()
 
-	// Generate code count and labels
+	// Generate code labels and code counts
 	for _, code := range codes {
-		codeCounts = append(codeCounts, m.StatusCodeCounts[code])
 		codeNames = append(codeNames, strconv.Itoa(code))
+		codeCounts = append(codeCounts, m.StatusCodeCounts[code])
 	}
 
 	// Append client (non-HTTP) error count at the end
@@ -134,6 +144,7 @@ func ExtractResponseCounts(m payload.Metric) (codeCounts []int, codeNames []stri
 	return
 }
 
+// Count returns the total number of errors in the input map.
 func Count(errors map[string]int) (c int) {
 	for _, i := range errors {
 		c += i
@@ -141,20 +152,25 @@ func Count(errors map[string]int) (c int) {
 	return
 }
 
-func ToString(prefix string, t payload.Timing) (s []string) {
+// FormatForTable formats a timing for use in a ui.Table.
+// Durations are rounded to the nearest millisecond.
+//
+// A sample return result would be:
+// 	[]string{prefix, "12ms", "56ms", "87ms", ...}
+func FormatForTable(prefix string, t payload.Timing) (s []string) {
 	s = append(s, prefix)
-	for _, duration := range ToSlice(t) {
-		s = append(s, duration.Round(time.Millisecond).String())
+	durations := []time.Duration{t.DNS, t.TCP, t.TLS, t.Server, t.TTFB, t.Transfer, t.Response}
+	for _, d := range durations {
+		s = append(s, d.Round(time.Millisecond).String())
 	}
 	return
 }
 
-// ToSlice converts a Timing to a slice of durations, to allow for easier manipulation and display.
-func ToSlice(t payload.Timing) []time.Duration {
-	return []time.Duration{t.DNS, t.TCP, t.TLS, t.Server, t.TTFB, t.Transfer, t.Response}
-}
-
-func ToFloat64(d []time.Duration) (f []float64) {
+// FormatForGraph formats a slice of durations for use in a ui.LineChart (i.e. a graph).
+//
+// Durations are rounded to the nearest millisecond, and converted to float64 values.
+// float64(1) represents one second.
+func FormatForGraph(d []time.Duration) (f []float64) {
 	for _, duration := range d {
 		f = append(f, float64(duration/time.Millisecond)/1000)
 	}

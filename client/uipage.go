@@ -1,3 +1,7 @@
+/*
+This file contains the display and update logic of top-level UI elements.
+*/
+
 package client
 
 import (
@@ -8,8 +12,7 @@ import (
 
 // UIPage contains the UI objects used to display the dashboard.
 //
-// Contrary to UIDashboard, UIPage only contains elements that are visible:
-// it does not store the data of websites that are not currently being shown.
+// Contrary to UIDashboard, UIPage only contains elements that are actually visible to the user.
 type UIPage struct {
 	Title   ui.Par // Shows the URL
 	Counter ui.Par // Shows the index of the currently displayed website (e.g. 3/8)
@@ -42,7 +45,7 @@ func NewUIPage(c *Config) UIPage {
 	}
 }
 
-// Refresh rerenders the DashboardPage using the latest data available.
+// Refresh updates the UIPage using the latest available data.
 func (p *UIPage) Refresh(s *Store) {
 	s.RLock()
 	defer s.RUnlock()
@@ -52,14 +55,16 @@ func (p *UIPage) Refresh(s *Store) {
 	// Update top-level widgets
 	p.Title.Text = url
 	p.Counter.Text = "Page " + strconv.Itoa(s.currentIdx+1) + "/" + strconv.Itoa(len(s.URLs))
-	p.Alerts.Text = PrintAlert(&s.Alerts, url)
+	p.Alerts.Text = FormatAlerts(&s.Alerts, url)
 
 	// Update stats on both sides
 	p.Left.Refresh(s.Metrics[url][p.Left.Timespan])
 	p.Right.Refresh(s.Metrics[url][p.Right.Timespan])
 }
 
-func PrintAlert(a *Alerts, url string) (str string) {
+// FormatAlerts converts alerts to a human-readable string,
+// to be displayed on the dashboard.
+func FormatAlerts(a *Alerts, url string) (str string) {
 	for _, alert := range (*a)[url] {
 		str += "Website " + url + " is "
 		if alert.BelowThreshold {
