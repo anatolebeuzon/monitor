@@ -45,7 +45,7 @@ func (h *Handler) Alerts(tf payload.Timeframe, a *payload.Alerts) error {
 	*a = make(payload.Alerts)
 	for i, website := range *h {
 		// Get average availability
-		avail := website.PollResults.Extract(tf).Availability()
+		avail := Availability(website.PollResults.Extract(tf))
 
 		if (avail < website.Threshold) && !website.DownAlertSent {
 			// if the website is considered down but no alert for this event was sent yet

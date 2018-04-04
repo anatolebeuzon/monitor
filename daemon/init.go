@@ -12,6 +12,7 @@ package daemon
 import (
 	"fmt"
 	"monitor/payload"
+	"sync"
 	"time"
 )
 
@@ -25,7 +26,7 @@ type Website struct {
 	Interval        int     // Interval, in seconds, between two polls
 	RetainedResults int     // Number of poll results that should be kept. If set to 0, no poll result is ever deleted
 	Threshold       float64 // Availability threshold that should trigger an alert when crossed
-	PollResults     PollResults
+	PollResults     *PollResults
 
 	// DownAlertSent is true if at the last alert check from the front-end,
 	// the aggregate availability was below the threshold. Keeping this information:
@@ -38,7 +39,10 @@ type Website struct {
 //
 // The retention policy of those results is user-defined: in the config file,
 // the RetainedResults parameter specifies how many poll results to keep.
-type PollResults []PollResult
+type PollResults struct {
+	sync.RWMutex
+	items []PollResult
+}
 
 // A PollResult represents the results of one request to a website.
 type PollResult struct {
@@ -68,6 +72,7 @@ func NewWebsites(c *Config) (w Websites) {
 			Interval:        website.Interval,
 			RetainedResults: website.RetainedResults,
 			Threshold:       website.Threshold,
+			PollResults:     &PollResults{},
 		}
 
 		// Fallback to defaults if website-specific attributes not used

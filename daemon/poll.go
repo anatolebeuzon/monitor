@@ -44,7 +44,7 @@ func (w *Website) Poll(retainedResults int) {
 		DNSStart:             func(_ httptrace.DNSStartInfo) { t[0] = time.Now() },
 		DNSDone:              func(_ httptrace.DNSDoneInfo) { t[1] = time.Now() },
 		ConnectStart:         func(_, _ string) { t[2] = time.Now() },
-		ConnectDone:          func(_, _ string, err error) { t[3] = time.Now() }, // TODO: handle err?
+		ConnectDone:          func(_, _ string, _ error) { t[3] = time.Now() },
 		GotConn:              func(_ httptrace.GotConnInfo) { t[4] = time.Now() },
 		GotFirstResponseByte: func() { t[5] = time.Now() },
 	}
@@ -115,9 +115,12 @@ func NewTransport() *http.Transport {
 // the oldest items are deleted.
 // If retainedResults = 0, no metric is ever deleted.
 func (w *Website) SaveResult(p *PollResult, retainedResults int) {
+	w.PollResults.Lock()
+	defer w.PollResults.Unlock()
+
 	i := 0
-	if (retainedResults != 0) && (len(w.PollResults) >= retainedResults) {
-		i = len(w.PollResults) + 1 - retainedResults
+	if (retainedResults != 0) && (len(w.PollResults.items) >= retainedResults) {
+		i = len(w.PollResults.items) + 1 - retainedResults
 	}
-	w.PollResults = append(w.PollResults[i:], *p)
+	w.PollResults.items = append(w.PollResults.items[i:], *p)
 }
