@@ -39,7 +39,7 @@ The packages have been tested on **macOS and Linux**.
 go get github.com/oxlay/monitor/cmd/monitord github.com/oxlay/monitor/cmd/monitorctl
 ```
 
-Providing that `$GOPATH/bin` is in your `$PATH`, you should be able:
+Providing that `$GOPATH/bin` is in your `$PATH`, you should be able to:
 
 * **start the daemon** by simply running `monitord`
 * **start the dashboard** in a separate window by running `monitorctl`
@@ -143,7 +143,7 @@ It would allow the user to launch the daemon without needing a separate window f
 
 Go does not provide support for daemonization out of the box. While [a](https://github.com/takama/daemon) [few](https://github.com/sevlyar/go-daemon) [libraries](https://github.com/VividCortex/godaemon) are available on Github, they are generally cumbersome to use and added an undesired level of complexity.
 
-In order to keep the code straightforward, a decision was made not to use such libraries, and leave the user to deal with his platform-specific tools (`launchctl` on macOS, `systemctl` on Ubuntu, etc.), would he come to need a daemon that runs 24/7.
+In order to keep the code straightforward, a decision was made not to use such libraries, and leave the user to deal with his platform-specific tools (`launchctl` on macOS, `systemctl` on Ubuntu, etc.), should he need a daemon that runs 24/7.
 
 ### Choosing the right metrics for effective monitoring
 
@@ -177,7 +177,7 @@ In an effort not to overwhelm the user with low-value information, minimum respo
 **Metrics analysis:** Google's SRE team offers [valuable insights](https://landing.google.com/sre/book/chapters/monitoring-distributed-systems.html) into making an effective monitoring system. This project would benefit from implementing some of their suggestions, such as:
 
 * separating the timing calculations of valid responses and those of error responses: indeed, if a website randomly throws 500 errors very fast, it does not mean that the website is fast, so those results should be separated from the average response time of valid responses
-* creating configurable "policy errors": for example, if a website responds with a 200 response code in more than 3 seconds, it could be logged an error
+* creating configurable "policy errors": for example, if a website responds with a 200 response code in more than 3 seconds, it could be logged as an error
 * bucketing results: displaying the distribution of response times (e.g. the number of requests with a response time between 0 and 100 ms, between 100 ms and 300 ms, between 300 and 800 ms, etc.) would show if there is a tail of slow responses that negatively impact the average response time
 
 **Configuration check:** currently, the configuration file validity is not checked on startup of `monitord` or `monitorctl`. Basic checks such as URL validity checks could be implemented.
@@ -196,6 +196,6 @@ In an effort not to overwhelm the user with low-value information, minimum respo
 
 **Search engine:** navigating through the dashboard using left/right arrows is fine for a few websites, but can quickly get irritating when the number grows. In this case, a basic text input allowing the user to choose which website to show may be more appropriate.
 
-**Resiliency to network interruptions:** currently, the dashboard exits when it fails to connect to the daemon. This behavior is considered acceptable as long as the daemon and client are running on the same machine. However, if the daemon were to be used on a server, and the client on a user's laptop, the network connection between these two components would be less reliable. In this case, the dashboard should try to recover from a network failure by making new connection attempts to the daemon.
+**Resiliency to network interruptions:** currently, the dashboard exits when it fails to connect to the daemon. This behavior is considered acceptable as long as the daemon and client are running on the same machine. However, if the daemon was used on a server, and the client on a user's laptop, the network connection between these two components would be less reliable. In this case, the dashboard should try to recover from a network failure by making new connection attempts to the daemon.
 
 **Dynamically set dashboard's height:** currently, the library used for displaying the dashboard ([`termui`](https://github.com/gizak/termui)) does not support adapting the UI components' height to the window's height. Therefore, users with small terminal windows may not see the bottom of the dashboard. In a future iteration, the dashboard's height could be computed from the window's height.
