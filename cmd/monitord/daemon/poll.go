@@ -99,12 +99,12 @@ func NewTransport() *http.Transport {
 	return &http.Transport{
 		DisableKeepAlives: true,
 		DialContext: (&net.Dialer{
-			Timeout:   2 * time.Second,
-			KeepAlive: 2 * time.Second,
+			Timeout:   4 * time.Second,
+			KeepAlive: 4 * time.Second,
 			DualStack: true,
 		}).DialContext,
-		IdleConnTimeout:     2 * time.Second,
-		TLSHandshakeTimeout: 2 * time.Second,
+		IdleConnTimeout:     4 * time.Second,
+		TLSHandshakeTimeout: 4 * time.Second,
 	}
 }
 
