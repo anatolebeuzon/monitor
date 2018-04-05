@@ -1,6 +1,6 @@
 /*
-monitorctl is a client for the monitord daemon.
-It displays website statistics and alerts on a console dashboard.
+monitorctl displays a console dashboard with website statistics and alerts.
+It is a client for the monitord daemon.
 
 Usage :
 	monitorctl [-config path]

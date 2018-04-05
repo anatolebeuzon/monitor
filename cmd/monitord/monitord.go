@@ -1,6 +1,6 @@
 /*
-monitord is a daemon that polls websites, gather related metrics,
-and publishes them through an RPC API.
+monitord is a daemon that polls websites, gathers related metrics,
+and publishes those through an RPC API.
 
 Usage :
 	monitord [-config path]
