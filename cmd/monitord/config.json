@@ -6,10 +6,9 @@
     "Threshold": 0.8
   },
   "Websites": [
-    { "URL": "ht://youtube.com" },
-    { "URL": "http://youtube.com" },
-    { "URL": "https://www.youtube.com" },
-    { "URL": "https://apple.com" },
+    { "URL": "https://golang.org" },
+    { "URL": "https://google.fr", "Interval": 3 },
+    { "URL": "http://test/" },
     { "URL": "https://www.datadoghq.com" }
   ]
 }
