@@ -42,11 +42,6 @@ import (
 	"github.com/oxlay/monitor/cmd/monitord/daemon"
 )
 
-const (
-	name        = "monitord"
-	description = "Daemon that polls websites and gather related metrics"
-)
-
 func main() {
 	// Set up channel on which to send interrupt notifications.
 	// We must use a buffered channel or risk missing the signal
