@@ -188,7 +188,7 @@ In an effort not to overwhelm the user with low-value information, minimum respo
 
 **Notifications:** as looking at a dashboard all day might get tiresome, a notification system could be implemented. Website maintainers would therefore be notified (e.g. on Slack) when a website is down.
 
-**Database backend:** as mentioned in _[Why RPC?](#why-rpc)_, if the project was used in a context where scalability is a concern, then using a time-series database would be more appropriate. Amongst others, it would reduce memory usage (above a certain number of websites), allow for longer data retention, and prevent data loss if the daemon is restarted.
+**Database backend:** as mentioned in _[Why store metrics in memory?](#why-store-metrics-in-memory)_, if the project was used in a context where scalability is a concern, then using a time-series database would be more appropriate. Amongst others, it would reduce memory usage (above a certain number of websites), allow for longer data retention, and prevent data loss if the daemon is restarted.
 
 **Poller architecture:** currently, for each website in the config file, a goroutine is created to regularly poll the website. While this straightforward approach works well for moderate loads, it might not scale well as the number of websites grows. In this case, refactoring the polling logic might be necessary, and the [dispatcher-worker architecture proposed by Marcio Castilho](http://marcio.io/2015/07/handling-1-million-requests-per-minute-with-golang/) could be a good source of inspiration.
 
