@@ -54,6 +54,7 @@ func main() {
 	flag.Parse()
 	config := daemon.ReadConfig(*path)
 
+	// Start polling websites
 	websites := daemon.NewWebsites(&config)
 	websites.InitPolls()
 
