@@ -43,28 +43,48 @@ No min showed, by choice.
 
 ## Requirements
 
-* Go 1.10
-* Dep
+Go 1.10
 
 ## Quick start
 
-* Move the `monitor` folder to `$GOPATH/src`
-* Install dependencies using [Dep](https://golang.github.io/dep/) : `dep ensure`
-* Build the binaries : `go install monitor/cmd/monitord monitor/cmd/monitorctl`
+Run:
 
-Providing that `$GOPATH/bin` is in your `PATH`, you should be able:
+```
+go get github.com/oxlay/monitor/cmd/monitord github.com/oxlay/monitor/cmd/monitorctl
+```
+
+Providing that `$GOPATH/bin` is in your `$PATH`, you should be able:
 
 * to start the daemon by simply running `monitord`
 * to start the dashboard in a separate window by running `monitorctl`
 
-### About config files
+## About config files
 
-### Testing
+By default, `monitorctl` and `monitord` respectively look for the following config files provided in the repo:
 
-### Documentation
+* `$GOPATH/src/github.com/oxlay/monitor/cmd/monitorctl/config.json`
+* `$GOPATH/src/github.com/oxlay/monitor/cmd/monitord/config.json`
 
-Use godoc.
-As an effort to provide easy access to the project's documentation, I purposefully chose to export all methods, thus making them available through godoc.
+You can override those defaults and pass any config flag using the `-config` flag:
+
+```
+monitord -config path/to/config-monitord.json & monitorctl -config path/to/config-monitorctl.json
+```
+
+## Testing
+
+To run tests for the alert logic:
+
+```
+cd $GOPATH/src/github.com/oxlay/monitor/daemon
+go test
+```
+
+## Documentation
+
+The project documentation is available [here](https://godoc.org/github.com/oxlay/monitor).
+
+As an effort to provide easy access to the project's documentation, I purposefully chose to export all methods, thus making them available through `godoc`.
 I believe it is an acceptable trade-off, as the `client` and `daemon` packages will not be distributed as libraries, and are only meant to be used through `monitorctl` and `monitord` commands.
 
 # Future improvements
