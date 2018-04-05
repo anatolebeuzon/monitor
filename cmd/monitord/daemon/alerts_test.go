@@ -1,3 +1,7 @@
+/*
+This file contains tests for the alert logic.
+*/
+
 package daemon
 
 import (
@@ -6,19 +10,16 @@ import (
 	"testing"
 	"time"
 
-	"github.com/oxlay/monitor/payload"
+	"github.com/oxlay/monitor/internal/payload"
 )
 
 const testURL = "http://test/"
 
 // End-to-end test of alert logic
-// TODO: explain that I chose not to mock method calls
+//
+// It simulates RPC calls from the client and checks
+// if the response is correct.
 func TestAlerts(t *testing.T) {
-	// Integration test - skip if necessary
-	if testing.Short() {
-		t.Skip()
-	}
-
 	end := time.Now()
 	start := end.Add(-20 * time.Second)
 	timeframe := payload.Timeframe{
@@ -35,6 +36,7 @@ func TestAlerts(t *testing.T) {
 	edgeEndSuccess := PollResult{Date: end, StatusCode: 200}
 	afterEndSuccess := PollResult{Date: end.Add(1 * time.Second), StatusCode: 200}
 
+	// Create table of test cases
 	testCases := []struct {
 		handler  Handler
 		expected payload.Alerts
@@ -89,10 +91,14 @@ func TestAlerts(t *testing.T) {
 		},
 	}
 
+	// Run tests
 	for i, tc := range testCases {
 		t.Run(fmt.Sprint("Test case ", i), func(t *testing.T) {
+			// Simulate an RPC call to Alerts()
 			var computed payload.Alerts
 			tc.handler.Alerts(timeframe, &computed)
+
+			// Check the result
 			if !reflect.DeepEqual(computed, tc.expected) {
 				t.Errorf("Expected %v, got %v", tc.expected, computed)
 			}
@@ -100,6 +106,8 @@ func TestAlerts(t *testing.T) {
 	}
 }
 
+// buildHandler is a helper function to build test cases.
+// It returns a handler for a single website, with the poll results provided in argument.
 func buildHandler(DownAlertSent bool, r ...PollResult) Handler {
 	return Handler([]Website{Website{
 		URL:           testURL,
@@ -109,6 +117,8 @@ func buildHandler(DownAlertSent bool, r ...PollResult) Handler {
 	}})
 }
 
+// buildAlerts is a helper function to build test cases.
+// It returns a payload with a single alert, using the data provided in argument.
 func buildAlerts(tf payload.Timeframe, avail float64, belowThreshold bool) payload.Alerts {
 	return payload.Alerts{
 		testURL: payload.Alert{
