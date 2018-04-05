@@ -1,6 +1,4 @@
 /*
-OK
-
 This file is used to generate a Config object from a JSON config file.
 */
 
