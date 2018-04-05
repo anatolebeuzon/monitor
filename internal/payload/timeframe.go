@@ -7,7 +7,10 @@ import "time"
 type Timeframe struct {
 	StartDate time.Time
 	EndDate   time.Time
-	Seconds   int
+
+	// Seconds is the number of seconds between StartDate and EndDate.
+	// It is used to categorize metrics depending on the length of the Timeframe.
+	Seconds int
 }
 
 // NewTimeframe returns a new Timeframe, with the current date as the EndDate.
