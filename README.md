@@ -7,7 +7,7 @@ Two binaries are available: `monitord`, the daemon, and `monitorctl`, the client
 
 ![preview](https://github.com/oxlay/monitor/blob/master/preview.png)
 
-# Table of Contents
+# Table of contents
 
 * [Usage](#usage)
   * [Requirements](#requirements)
@@ -41,12 +41,12 @@ go get github.com/oxlay/monitor/cmd/monitord github.com/oxlay/monitor/cmd/monito
 
 Providing that `$GOPATH/bin` is in your `$PATH`, you should be able:
 
-* to **start the daemon** by simply running `monitord`
-* to **start the dashboard** in a separate window by running `monitorctl`
+* **start the daemon** by simply running `monitord`
+* **start the dashboard** in a separate window by running `monitorctl`
 
 On daemon startup, you may need to wait a few seconds for poll results to be available.
 
-## About config files
+## Configuration files
 
 By default, `monitorctl` and `monitord` respectively look for the following config files provided in the repo:
 
@@ -60,12 +60,14 @@ monitord -config path/to/config-monitord.json &
 monitorctl -config path/to/config-monitorctl.json
 ```
 
+Documentation about the content of config files is available [through GoDoc]((https://godoc.org/github.com/oxlay/monitor).
+
 ## Testing
 
 To run tests for the alert logic:
 
 ```
-cd $GOPATH/src/github.com/oxlay/monitor/daemon
+cd $GOPATH/src/github.com/oxlay/monitor/cmd/monitord/daemon
 go test
 ```
 
