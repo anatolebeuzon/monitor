@@ -113,7 +113,7 @@ The client, `monitorctl`:
 
 Go has many great features, amongst which:
 
-* As it is a compiled, statically typed language, it is faster and requires less resources than dynamically typed languages such as Python or JavaScript. Still, its type system is more straightforward than those of C++ or Java
+* As it is a compiled, statically typed language, it is faster and requires fewer resources than dynamically typed languages such as Python or JavaScript. Still, its type system is more straightforward than those of C++ or Java
 * By design, Go is a concurrent language. It is an especially interesting feature for this project, as the daemon has to deal with numerous tasks at once, such as polling a potentially large number of websites while aggregating metrics and responding to the client. Gorountines and channels provide an effective way of doing all those tasks while keeping a logical, structured program.
 
 ### Why a client-server architecture?
@@ -126,13 +126,13 @@ Using a client-server architecture provides numerous benefits, the most notable 
 
 ### Why store metrics in memory?
 
-This choice was made in order to keep the project as simple as it needs to be. It results in less code and a more straightforward installation process than if a databse needed to be installed and configured.
+This choice was made in order to keep the project as simple as it needs to be. It results in less code and a more straightforward installation process than if a database needed to be installed and configured.
 
-It could evolve, in a future iteration, to use a time-series database that store the poll results, thus making the daemon stateless and more scalable. See [possible improvements](#possible-improvements).
+It could evolve, in a future iteration, to use a time-series database that stores the poll results, thus making the daemon stateless and more scalable. See [possible improvements](#possible-improvements).
 
 ### Why RPC?
 
-Remote Procedure Call provides a clean and lightweigt means of communication between processes.
+Remote Procedure Call provides a clean and lightweight means of communication between processes.
 
 As `net/rpc` provides a straightforward implementation, it results in more idiomatic code than other solutions such as REST API endpoints.
 
@@ -144,7 +144,7 @@ It would allow the user to launch the daemon without needing a separate window f
 
 Go does not provide support for daemonization out of the box. While [a](https://github.com/takama/daemon) [few](https://github.com/sevlyar/go-daemon) [libraries](https://github.com/VividCortex/godaemon) are available on Github, they are generally cumbersome to use and added an undesired level of complexity.
 
-In order to keep the code straightword, a decision was made not to use such libraries, and leave the user to deal with his platform-specific tools (`launchctl` on macOS, `systemctl` on Ubuntu, etc.), would he come to need a daemon that runs 24/7.
+In order to keep the code straightforward, a decision was made not to use such libraries, and leave the user to deal with his platform-specific tools (`launchctl` on macOS, `systemctl` on Ubuntu, etc.), would he come to need a daemon that runs 24/7.
 
 ### Choosing the right metrics for effective monitoring
 
@@ -152,10 +152,10 @@ In order to keep the code straightword, a decision was made not to use such libr
 This request breakdown allows website maintainers to understand which parts of the request are the most problematic and should be improved in priority.
 
 **A choice was made _not_ to follow redirects.**
-Indeed, monitoring redirections can be insightful in itself: it is important to know how fast a page responds, even if it gives a 301 reponse code. And the response time of the redirecting page should not be mixed with the response time of the page it redirects to.
+Indeed, monitoring redirections can be insightful in itself: it is important to know how fast a page responds, even if it gives a 301 response code. And the response time of the redirecting page should not be mixed with the response time of the page it redirects to.
 
 **Another decision was made not to show minimum response times to the user.**
-In an effort not to overwhelm the user with low-value information, minimum response times are not shown on the dashboard. Indeed, it would provide little insight into how long a website takes to respond for an average user. Infrastructure mainteners should focus on optimizing max and average response times, rather than optimizing a min response time that very few users will experience.
+In an effort not to overwhelm the user with low-value information, minimum response times are not shown on the dashboard. Indeed, it would provide little insight into how long a website takes to respond for an average user. Infrastructure maintainers should focus on optimizing max and average response times, rather than optimizing a min response time that very few users will experience.
 
 ## Folder and files structure
 
@@ -177,13 +177,13 @@ In an effort not to overwhelm the user with low-value information, minimum respo
 
 **Metrics analysis:** Google's SRE team offers [valuable insights](https://landing.google.com/sre/book/chapters/monitoring-distributed-systems.html) into making an effective monitoring system. This project would benefit from implementing some of their suggestions, such as:
 
-* separating the timing calculations of valid responses and those of error responses: indeed, if a websites randomly throws 500 errors very fast, it does not mean that the website is fast, so those results should be separated from the average response time of valid responses
+* separating the timing calculations of valid responses and those of error responses: indeed, if a website randomly throws 500 errors very fast, it does not mean that the website is fast, so those results should be separated from the average response time of valid responses
 * creating configurable "policy errors": for example, if a website responds with a 200 response code in more than 3 seconds, it could be logged an error
 * bucketing results: displaying the distribution of response times (e.g. the number of requests with a response time between 0 and 100 ms, between 100 ms and 300 ms, between 300 and 800 ms, etc.) would show if there is a tail of slow responses that negatively impact the average response time
 
 **Configuration check:** currently, the configuration file validity is not checked on startup of `monitord` or `monitorctl`. Basic checks such as URL validity checks could be implemented.
 
-**Unit testing:** currently, only the alerting logic is tested by `go test`. If the project developement would continue, improving code coverage by writing more tests might be a good investment, as it could make the project more reliable and maintainable.
+**Unit testing:** currently, only the alerting logic is tested by `go test`. If the project development would continue, improving code coverage by writing more tests might be a good investment, as it could make the project more reliable and maintainable.
 
 ## Daemon-specific improvements
 
@@ -191,7 +191,7 @@ In an effort not to overwhelm the user with low-value information, minimum respo
 
 **Database backend:** as mentioned in _[Why RPC?](#why-rpc)_, if the project was used in a context where scalability is a concern, then using a time-series database would be more appropriate. Amongst others, it would reduce memory usage (above a certain number of websites), allow for longer data retention, and prevent data loss if the daemon is restarted.
 
-**Poller architecture:** currently, for each webiste in the config file, a goroutine is created to regularly poll the website. While this straightforward approach works well for moderate loads, it might not scale well as the number of websites grows. In this case, refactoring the polling logic might be necessary, and the [dispatcher-worker architecture proposed by Marcio Castilho's](http://marcio.io/2015/07/handling-1-million-requests-per-minute-with-golang/) could be a good source of inspiration.
+**Poller architecture:** currently, for each website in the config file, a goroutine is created to regularly poll the website. While this straightforward approach works well for moderate loads, it might not scale well as the number of websites grows. In this case, refactoring the polling logic might be necessary, and the [dispatcher-worker architecture proposed by Marcio Castilho's](http://marcio.io/2015/07/handling-1-million-requests-per-minute-with-golang/) could be a good source of inspiration.
 
 ## Dashboard-specific improvements
 
