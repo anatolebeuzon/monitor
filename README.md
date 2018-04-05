@@ -5,19 +5,33 @@ Monitor is a website monitoring project proposed by Datadog.
 It is a client-server application written in Go.
 Two binaries are available: `monitord`, the daemon, and `monitorctl`, the client.
 
-![preview](TODO)
+![preview](https://github.com/oxlay/monitor/blob/master/preview.png)
 
 # Table of Contents
 
-TODO
+* [Usage](#usage)
+  * [Requirements](#requirements)
+  * [Install](#install)
+  * [About config files](#about-config-files)
+  * [Testing](#testing)
+  * [Documentation](#documentation)
+  * [About dependencies](#about-dependencies)
+* [Architecture](#architecture)
+  * [Overview](#overview)
+  * [Design choices](#design-choices)
+  * [Folder and files structure](#folder-and-files-structure)
+* [Possible improvements](#possible-improvements)
+  * [Project-wide improvements](#project-wide-improvements)
+  * [Daemon-specific improvements](#daemon-specific-improvements)
+  * [Dashboard-specific improvements](#dashboard-specific-improvements)
 
 # Usage
 
 ## Requirements
 
-Go 1.10 recommended. Go 1.7+ might be supported but has not been tested.
+**Go 1.10 recommended.** Go 1.7+ might be supported but has not been tested.
 
-The packages have been tested on macOS and Linux.
+The packages have been tested on **macOS and Linux**.
 
 ## Install
 
@@ -27,8 +41,8 @@ go get github.com/oxlay/monitor/cmd/monitord github.com/oxlay/monitor/cmd/monito
 
 Providing that `$GOPATH/bin` is in your `$PATH`, you should be able:
 
-* to start the daemon by simply running `monitord`
-* to start the dashboard in a separate window by running `monitorctl`
+* to **start the daemon** by simply running `monitord`
+* to **start the dashboard** in a separate window by running `monitorctl`
 
 On daemon startup, you may need to wait a few seconds for poll results to be available.
 
@@ -42,7 +56,8 @@ By default, `monitorctl` and `monitord` respectively look for the following conf
 You can override those defaults and pass any config flag using the `-config` flag:
 
 ```
-monitord -config path/to/config-monitord.json & monitorctl -config path/to/config-monitorctl.json
+monitord -config path/to/config-monitord.json &
+monitorctl -config path/to/config-monitorctl.json
 ```
 
 ## Testing
@@ -104,14 +119,14 @@ Go has many great features, amongst which:
 Using a client-server architecture provides numerous benefits, the most notable ones being:
 
 * separation of concerns: how websites are polled should be separate from how users interact with the result
-* the ability to leave the daemon running in the background: `monitord` could be running 24/7 and controlled by a service manager such as `systemd`
-* the ability to poll the websites from one machine and present the user interface on another. Typically, the daemon could be running on a server and users could occasionally take a look at the results from their laptop (without needing an interrupted network connection)
+* ability to leave the daemon running in the background: `monitord` could be running 24/7 and controlled by a service manager such as `systemd`
+* ability to poll the websites from one machine and present the user interface on another. Typically, the daemon could be running on a server and users could occasionally take a look at the results from their laptop (without needing an interrupted network connection)
 
 ### Why store metrics in memory?
 
-This choice was made in order to keep the project as simple as it needs to be. It results in less code and a more straightforward installation process (no need to install and configure a database).
+This choice was made in order to keep the project as simple as it needs to be. It results in less code and a more straightforward installation process than if a databse needed to be installed and configured.
 
-It could evolve, in a future iteration, to use a time-series database that store the poll results, thus making the daemon stateless and more scalable.
+It could evolve, in a future iteration, to use a time-series database that store the poll results, thus making the daemon stateless and more scalable. See [possible improvements](#possible-improvements).
 
 ### Why RPC?
 
@@ -123,50 +138,63 @@ As `net/rpc` provides a straightforward implementation, it results in more idiom
 
 Tests were made for `monitord` to be self-daemonizing, but the result was not convincing.
 
-It would allow the user to launch the daemon without needing a separate window for the dashboard (or without needing to append the `monitord` command with the `&` job control character). Yet it comes with a set of challenges that would not be worth the effort.
+It would allow the user to launch the daemon without needing a separate window for the dashboard (or without the need to append the `monitord` command with the `&` job control character). Yet it comes with a set of challenges that would not be worth the effort.
 
-Go does not provide support for daemonization out of the box. While [a](https://github.com/takama/daemon) [few](https://github.com/sevlyar/go-daemon) [libraries](https://github.com/VividCortex/godaemon) were available on Github, they were generally cumbersome to use and added an undesired level of complexity.
+Go does not provide support for daemonization out of the box. While [a](https://github.com/takama/daemon) [few](https://github.com/sevlyar/go-daemon) [libraries](https://github.com/VividCortex/godaemon) are available on Github, they are generally cumbersome to use and added an undesired level of complexity.
 
-In order to keep the code straightword, a decision was made not to use such libraries, and leave the user to deal with his platform-specific tools (`launchctl` on macOS, `systemctl` on Ubuntu, etc.) would he come to need 24/7 daemonization.
+In order to keep the code straightword, a decision was made not to use such libraries, and leave the user to deal with his platform-specific tools (`launchctl` on macOS, `systemctl` on Ubuntu, etc.), would he come to need a daemon that runs 24/7.
 
-### Metrics: effective monitoring
+### Choosing the right metrics for effective monitoring
+
+**In addition to response times, the dashboard provides the duration of each phase of HTTP requests.**
+This request breakdown allows website maintainers to understand which parts of the request are the most problematic and should be improved in priority.
 
 **A choice was made _not_ to follow redirects.**
 Indeed, monitoring redirections can be insightful in itself: it is important to know how fast a page responds, even if it gives a 301 reponse code. And the response time of the redirecting page should not be mixed with the response time of the page it redirects to.
 
 **Another decision was made not to show minimum response times to the user.**
-In an effort not to overwhelm the user with low-value information, minimum response times are not shown on the dashboard. Indeed, it would provide little insight into how long a website takes to respond for an average user. Infrastructure mainteners should optimize max and average response times, rather than optimizing a min response time that very few users will experience.
+In an effort not to overwhelm the user with low-value information, minimum response times are not shown on the dashboard. Indeed, it would provide little insight into how long a website takes to respond for an average user. Infrastructure mainteners should focus on optimizing max and average response times, rather than optimizing a min response time that very few users will experience.
 
 ## Folder and files structure
 
-TODO
+```
+.
+├── cmd                    # Contains standalone packages (CLI commands)
+│   ├── monitorctl         # Client command
+│   │   └── client         # Library used by monitorctl
+│   └── monitord           # Daemon command
+│       └── daemon         # Library used by monitord
+├── internal               # Packages used by both monitorctl and monitord
+│   └── payload            # Types used to communicate between monitorctl and monitord
+└── vendor                 # Dependencies
+```
 
-# Future improvements
+# Possible improvements
 
-## Daemon
+## Project-wide improvements
+
+**Metrics analysis:** Google's SRE team offers [valuable insights](https://landing.google.com/sre/book/chapters/monitoring-distributed-systems.html) into making an effective monitoring system. This project would benefit from implementing some of their suggestions, such as:
+
+* separating the timing calculations of valid responses and those of error responses: indeed, if a websites randomly throws 500 errors very fast, it does not mean that the website is fast, so those results should be separated from the average response time of valid responses
+* creating configurable "policy errors": for example, if a website responds with a 200 response code in more than 3 seconds, it could be logged an error
+* bucketing results: displaying the distribution of response times (e.g. the number of requests with a response time between 0 and 100 ms, between 100 ms and 300 ms, between 300 and 800 ms, etc.) would show if there is a tail of slow responses that negatively impact the average response time
+
+**Configuration check:** currently, the configuration file validity is not checked on startup of `monitord` or `monitorctl`. Basic checks such as URL validity checks could be implemented.
+
+**Unit testing:** currently, only the alerting logic is tested by `go test`. If the project developement would continue, improving code coverage by writing more tests might be a good investment, as it could make the project more reliable and maintainable.
+
+## Daemon-specific improvements
 
 **Notifications:** as looking at a dashboard all day might get tiresome, a notification system could be implemented. Website maintainers would therefore be notified (e.g. on Slack) when a website is down.
 
-**Database backend:** as mentioned in _[Why RPC?](TODO)_, if the project was used in a context were scalability is a concern, then using a time-series database would be more appropriate. Amongst others, it would reduce memory usage (above a certain number of websites), allow for longer data retention, and prevent data loss if the daemon was restarted.
+**Database backend:** as mentioned in _[Why RPC?](#why-rpc)_, if the project was used in a context where scalability is a concern, then using a time-series database would be more appropriate. Amongst others, it would reduce memory usage (above a certain number of websites), allow for longer data retention, and prevent data loss if the daemon is restarted.
 
-* multiple pollers to handle more websites
+**Poller architecture:** currently, for each webiste in the config file, a goroutine is created to regularly poll the website. While this straightforward approach works well for moderate loads, it might not scale well as the number of websites grows. In this case, refactoring the polling logic might be necessary, and the [dispatcher-worker architecture proposed by Marcio Castilho's](http://marcio.io/2015/07/handling-1-million-requests-per-minute-with-golang/) could be a good source of inspiration.
 
-## Dashboard
+## Dashboard-specific improvements
 
-**Dynamically set dashboard height:** currently, the library used for displaying the dashboard (`gizak/termui`) does not support adapting the UI components' height to the window height. Therefore, users with small terminal windows may not see the bottom of the dashboard. In a future iteration, the dashboard's height could be computed from the window's height.
-
-**Search engine:** navigating through the dashboard using left/right arrows is fine for a few websites, but can quickly get irritating when the number grows. A basic text input allowing the user to choose which website to show would then be more appropriate.
+**Search engine:** navigating through the dashboard using left/right arrows is fine for a few websites, but can quickly get irritating when the number grows. In this case, a basic text input allowing the user to choose which website to show may be more appropriate.
 
 **Resiliency to network interruptions:** currently, the dashboard exits when it fails to connect to the daemon. This behavior was considered acceptable as long as the daemon and client are running on the same machine. However, if the daemon were to be used on a server, and the client on a user's laptop, the network connection between these two components would be less reliable. In this case, the dashboard should try to recover from a network failure by making new connection attempts to the daemon.
 
-## Both
-
-**Configuration check:**
-
-* More tests
-
-* Handle errors and valid response differently, to avoid false statistics
-* Policy errors
-* collect request counts bucketed by latencies
-
-https://landing.google.com/sre/book/chapters/monitoring-distributed-systems.html
+**Dynamically set dashboard height:** currently, the library used for displaying the dashboard ([`termui`](https://github.com/gizak/termui)) does not support adapting the UI components' height to the window's height. Therefore, users with small terminal windows may not see the bottom of the dashboard. In a future iteration, the dashboard's height could be computed from the window's height.
