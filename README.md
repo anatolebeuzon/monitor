@@ -60,7 +60,7 @@ monitord -config path/to/config-monitord.json &
 monitorctl -config path/to/config-monitorctl.json
 ```
 
-Documentation about the content of config files is available [through GoDoc]((https://godoc.org/github.com/oxlay/monitor).
+Documentation about the content of config files is available [through GoDoc](https://godoc.org/github.com/oxlay/monitor).
 
 ## Testing
 
@@ -111,10 +111,9 @@ The client, `monitorctl`:
 
 ### Why Go?
 
-Go has many great features, amongst which:
+Among Go's great features, its concurrency model, modern syntax, and low resource consumption made it a natural choice for the project.
 
-* As it is a compiled, statically typed language, it is faster and requires fewer resources than dynamically typed languages such as Python or JavaScript. Still, its type system is more straightforward than those of C++ or Java
-* By design, Go is a concurrent language. It is an especially interesting feature for this project, as the daemon has to deal with numerous tasks at once, such as polling a potentially large number of websites while aggregating metrics and responding to the client. Gorountines and channels provide an effective way of doing all those tasks while keeping a logical, structured program.
+Besides, `go get` is a plus, as it makes the install process of `monitord` and `monitorctl` remarkably simple.
 
 ### Why a client-server architecture?
 
@@ -128,7 +127,7 @@ Using a client-server architecture provides numerous benefits, the most notable 
 
 This choice was made in order to keep the project as simple as it needs to be. It results in less code and a more straightforward installation process than if a database needed to be installed and configured.
 
-It could evolve, in a future iteration, to use a time-series database that stores the poll results, thus making the daemon stateless and more scalable. See [possible improvements](#possible-improvements).
+It could evolve, in a future iteration, to use a time-series database that stores the poll results, thus making the daemon stateless and more scalable. See [possible improvements](#daemon-specific-improvements).
 
 ### Why RPC?
 
@@ -138,7 +137,7 @@ As `net/rpc` provides a straightforward implementation, it results in more idiom
 
 ### Thoughts on process daemonization
 
-Tests were made for `monitord` to be self-daemonizing, but the result was not convincing.
+Tests were made for `monitord` to be self-daemonizing, but the results were not convincing.
 
 It would allow the user to launch the daemon without needing a separate window for the dashboard (or without the need to append the `monitord` command with the `&` job control character). Yet it comes with a set of challenges that would not be worth the effort.
 
@@ -191,12 +190,12 @@ In an effort not to overwhelm the user with low-value information, minimum respo
 
 **Database backend:** as mentioned in _[Why RPC?](#why-rpc)_, if the project was used in a context where scalability is a concern, then using a time-series database would be more appropriate. Amongst others, it would reduce memory usage (above a certain number of websites), allow for longer data retention, and prevent data loss if the daemon is restarted.
 
-**Poller architecture:** currently, for each website in the config file, a goroutine is created to regularly poll the website. While this straightforward approach works well for moderate loads, it might not scale well as the number of websites grows. In this case, refactoring the polling logic might be necessary, and the [dispatcher-worker architecture proposed by Marcio Castilho's](http://marcio.io/2015/07/handling-1-million-requests-per-minute-with-golang/) could be a good source of inspiration.
+**Poller architecture:** currently, for each website in the config file, a goroutine is created to regularly poll the website. While this straightforward approach works well for moderate loads, it might not scale well as the number of websites grows. In this case, refactoring the polling logic might be necessary, and the [dispatcher-worker architecture proposed by Marcio Castilho](http://marcio.io/2015/07/handling-1-million-requests-per-minute-with-golang/) could be a good source of inspiration.
 
 ## Dashboard-specific improvements
 
 **Search engine:** navigating through the dashboard using left/right arrows is fine for a few websites, but can quickly get irritating when the number grows. In this case, a basic text input allowing the user to choose which website to show may be more appropriate.
 
-**Resiliency to network interruptions:** currently, the dashboard exits when it fails to connect to the daemon. This behavior was considered acceptable as long as the daemon and client are running on the same machine. However, if the daemon were to be used on a server, and the client on a user's laptop, the network connection between these two components would be less reliable. In this case, the dashboard should try to recover from a network failure by making new connection attempts to the daemon.
+**Resiliency to network interruptions:** currently, the dashboard exits when it fails to connect to the daemon. This behavior is considered acceptable as long as the daemon and client are running on the same machine. However, if the daemon were to be used on a server, and the client on a user's laptop, the network connection between these two components would be less reliable. In this case, the dashboard should try to recover from a network failure by making new connection attempts to the daemon.
 
-**Dynamically set dashboard height:** currently, the library used for displaying the dashboard ([`termui`](https://github.com/gizak/termui)) does not support adapting the UI components' height to the window's height. Therefore, users with small terminal windows may not see the bottom of the dashboard. In a future iteration, the dashboard's height could be computed from the window's height.
+**Dynamically set dashboard's height:** currently, the library used for displaying the dashboard ([`termui`](https://github.com/gizak/termui)) does not support adapting the UI components' height to the window's height. Therefore, users with small terminal windows may not see the bottom of the dashboard. In a future iteration, the dashboard's height could be computed from the window's height.
