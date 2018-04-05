@@ -1,6 +1,4 @@
 /*
-OK
-
 This file contains the main data types used by the daemon,
 and the init logic used on daemon startup:
 - to create Website objects from URLs
@@ -14,7 +12,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/oxlay/monitor/payload"
+	"github.com/oxlay/monitor/internal/payload"
 )
 
 // Websites represents all the websites to be polled.

@@ -10,7 +10,7 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/oxlay/monitor/payload"
+	"github.com/oxlay/monitor/internal/payload"
 
 	ui "github.com/gizak/termui"
 )

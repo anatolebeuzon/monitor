@@ -1,6 +1,4 @@
 /*
-OK
-
 This file handles all the interactions with an RPC client.
 It exposes both the aggregated statistics and the alerts.
 */
@@ -16,7 +14,7 @@ import (
 	"os"
 	"strconv"
 
-	"github.com/oxlay/monitor/payload"
+	"github.com/oxlay/monitor/internal/payload"
 )
 
 // Handler contains all the necessary data to satisfy RPC calls.

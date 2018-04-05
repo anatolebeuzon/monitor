@@ -44,7 +44,7 @@ import (
 	"os"
 	"os/signal"
 
-	"github.com/oxlay/monitor/daemon"
+	"github.com/oxlay/monitor/cmd/monitord/daemon"
 )
 
 const (

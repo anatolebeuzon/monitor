@@ -13,7 +13,7 @@ package daemon
 import (
 	"time"
 
-	"github.com/oxlay/monitor/payload"
+	"github.com/oxlay/monitor/internal/payload"
 )
 
 // Aggregate returns a payload.Metric containing the statistics for the website,

@@ -1,6 +1,4 @@
 /*
-OK
-
 This file contains the polling logic, namely:
 - how and when websites are polled
 - how metrics are collected throughout the lifecycle of an HTTP request
@@ -17,7 +15,7 @@ import (
 	"net/http/httptrace"
 	"time"
 
-	"github.com/oxlay/monitor/payload"
+	"github.com/oxlay/monitor/internal/payload"
 )
 
 // SchedulePolls schedules regular polls for the website. It never returns.

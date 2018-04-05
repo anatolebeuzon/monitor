@@ -14,7 +14,7 @@ import (
 	"net/rpc"
 	"time"
 
-	"github.com/oxlay/monitor/payload"
+	"github.com/oxlay/monitor/internal/payload"
 )
 
 // Fetcher is used by fetch methods to effectively craft requests, save responses

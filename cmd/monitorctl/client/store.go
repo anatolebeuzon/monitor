@@ -9,7 +9,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/oxlay/monitor/payload"
+	"github.com/oxlay/monitor/internal/payload"
 )
 
 // Store contains all the data needed by the dashboard.
