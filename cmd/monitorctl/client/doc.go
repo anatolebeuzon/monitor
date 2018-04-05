@@ -2,6 +2,6 @@
 Package client provides a visual interface for monitoring websites'
 performance and availability.
 
-It displays website statistics and alerts on a console dashboard.
+It is only meant to be used through monitord command.
 */
 package client

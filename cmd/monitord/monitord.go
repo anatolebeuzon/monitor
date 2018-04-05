@@ -28,12 +28,7 @@ A sample JSON config file is described below:
 				"RetainedResults": 5000,
 				"Threshold": 0.95
 			},
-			{
-				"URL": "https://www.datadoghq.com",
-				"Interval": 3
-			},
-			{ "URL": "https://apple.com" },
-			{ "URL": "https://www.datadoghq.com" }
+			{ "URL": "https://golang.org" }
   		]
 	}
 */

@@ -60,6 +60,8 @@ Providing that `$GOPATH/bin` is in your `$PATH`, you should be able:
 * to start the daemon by simply running `monitord`
 * to start the dashboard in a separate window by running `monitorctl`
 
+On daemon startup, you may need to wait a few seconds for poll results to be available.
+
 ## About config files
 
 By default, `monitorctl` and `monitord` respectively look for the following config files provided in the repo:
