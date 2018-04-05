@@ -24,8 +24,8 @@ type Config struct {
 // TimeConf defines how the client should poll the daemon
 // for a specific piece of information (e.g. latest alerts).
 type TimeConf struct {
-	Frequency int // Frequency at which the daemon should be polled
-	Timespan  int // Timespan over which metrics should be aggregated
+	Frequency int // Frequency (in seconds) at which the daemon should be polled
+	Timespan  int // Timespan (in seconds) over which metrics should be aggregated
 }
 
 // ReadConfig reads the config file and returns the associated Config object.
