@@ -43,7 +43,9 @@ No min showed, by choice.
 
 ## Requirements
 
-Go 1.10
+Go 1.10 recommended. Go 1.7+ may be supported but has not been tested.
+
+The packages have been tested on macOS and Linux.
 
 ## Quick start
 
@@ -86,6 +88,10 @@ The project documentation is available [here](https://godoc.org/github.com/oxlay
 
 As an effort to provide easy access to the project's documentation, I purposefully chose to export all methods, thus making them available through `godoc`.
 I believe it is an acceptable trade-off, as the `client` and `daemon` packages will not be distributed as libraries, and are only meant to be used through `monitorctl` and `monitord` commands.
+
+## About dependencies
+
+Dependencies are included in the `vendor/` folder to allow for one-line install with `go get`.
 
 # Future improvements
 
