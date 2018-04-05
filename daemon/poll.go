@@ -12,11 +12,12 @@ package daemon
 import (
 	"fmt"
 	"io/ioutil"
-	"monitor/payload"
 	"net"
 	"net/http"
 	"net/http/httptrace"
 	"time"
+
+	"github.com/oxlay/monitor/payload"
 )
 
 // SchedulePolls schedules regular polls for the website. It never returns.

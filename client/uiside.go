@@ -6,10 +6,11 @@ statistics on the left and right frames ("sides") of the dashboard.
 package client
 
 import (
-	"monitor/payload"
 	"sort"
 	"strconv"
 	"time"
+
+	"github.com/oxlay/monitor/payload"
 
 	ui "github.com/gizak/termui"
 )

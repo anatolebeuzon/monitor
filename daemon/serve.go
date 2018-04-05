@@ -11,11 +11,12 @@ import (
 	"context"
 	"fmt"
 	"log"
-	"monitor/payload"
 	"net/http"
 	"net/rpc"
 	"os"
 	"strconv"
+
+	"github.com/oxlay/monitor/payload"
 )
 
 // Handler contains all the necessary data to satisfy RPC calls.

@@ -11,9 +11,10 @@ package daemon
 
 import (
 	"fmt"
-	"monitor/payload"
 	"sync"
 	"time"
+
+	"github.com/oxlay/monitor/payload"
 )
 
 // Websites represents all the websites to be polled.

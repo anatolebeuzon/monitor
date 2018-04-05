@@ -2,10 +2,11 @@ package daemon
 
 import (
 	"fmt"
-	"monitor/payload"
 	"reflect"
 	"testing"
 	"time"
+
+	"github.com/oxlay/monitor/payload"
 )
 
 const testURL = "http://test/"

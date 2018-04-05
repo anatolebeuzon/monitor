@@ -41,9 +41,10 @@ package main
 
 import (
 	"flag"
-	"monitor/daemon"
 	"os"
 	"os/signal"
+
+	"github.com/oxlay/monitor/daemon"
 )
 
 const (

@@ -38,7 +38,8 @@ package main
 
 import (
 	"flag"
-	"monitor/client"
+
+	"github.com/oxlay/monitor/client"
 )
 
 func main() {

@@ -6,9 +6,10 @@ for display on the dashboard.
 package client
 
 import (
-	"monitor/payload"
 	"sync"
 	"time"
+
+	"github.com/oxlay/monitor/payload"
 )
 
 // Store contains all the data needed by the dashboard.

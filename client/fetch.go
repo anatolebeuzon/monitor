@@ -11,9 +11,10 @@ package client
 
 import (
 	"log"
-	"monitor/payload"
 	"net/rpc"
 	"time"
+
+	"github.com/oxlay/monitor/payload"
 )
 
 // Fetcher is used by fetch methods to effectively craft requests, save responses

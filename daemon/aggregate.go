@@ -11,8 +11,9 @@ This file contains the logic regarding poll results aggregation, such as:
 package daemon
 
 import (
-	"monitor/payload"
 	"time"
+
+	"github.com/oxlay/monitor/payload"
 )
 
 // Aggregate returns a payload.Metric containing the statistics for the website,
