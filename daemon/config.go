@@ -39,7 +39,7 @@ type WebsiteConfig struct {
 // The program exits if an error is encountered while reading the config file.
 func ReadConfig(path string) Config {
 	if path == "" { // Switch to default path
-		path = os.Getenv("GOPATH") + "/src/monitor/cmd/monitord/config.json"
+		path = os.Getenv("GOPATH") + "/src/github.com/oxlay/monitor/cmd/monitord/config.json"
 	} else {
 		// Get working directory to resolve relative path
 		wd, err := os.Getwd()
