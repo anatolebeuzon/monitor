@@ -52,7 +52,6 @@ func (f *Fetcher) Init() {
 
 	// Launch alert check routine
 	go func() {
-		f.GetAlerts(c.Alerts.Timespan) // Get alerts on dashboard startup, without waiting
 		for range time.Tick(time.Duration(c.Alerts.Frequency) * time.Second) {
 			f.GetAlerts(c.Alerts.Timespan)
 		}
