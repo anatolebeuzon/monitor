@@ -39,7 +39,7 @@ package main
 import (
 	"flag"
 
-	"github.com/oxlay/monitor/cmd/monitorctl/client"
+	"github.com/anatolebeuzon/monitor/cmd/monitorctl/client"
 )
 
 func main() {

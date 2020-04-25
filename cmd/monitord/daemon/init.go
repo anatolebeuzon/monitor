@@ -12,7 +12,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/oxlay/monitor/internal/payload"
+	"github.com/anatolebeuzon/monitor/internal/payload"
 )
 
 // Websites represents all the websites to be polled.

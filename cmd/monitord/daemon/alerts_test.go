@@ -10,7 +10,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/oxlay/monitor/internal/payload"
+	"github.com/anatolebeuzon/monitor/internal/payload"
 )
 
 const testURL = "http://test/"

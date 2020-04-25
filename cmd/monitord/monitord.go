@@ -39,7 +39,7 @@ import (
 	"os"
 	"os/signal"
 
-	"github.com/oxlay/monitor/cmd/monitord/daemon"
+	"github.com/anatolebeuzon/monitor/cmd/monitord/daemon"
 )
 
 func main() {

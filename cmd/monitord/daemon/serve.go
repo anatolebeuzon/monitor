@@ -14,7 +14,7 @@ import (
 	"os"
 	"strconv"
 
-	"github.com/oxlay/monitor/internal/payload"
+	"github.com/anatolebeuzon/monitor/internal/payload"
 )
 
 // Handler contains all the necessary data to satisfy RPC calls.

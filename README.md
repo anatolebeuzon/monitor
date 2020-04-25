@@ -5,7 +5,7 @@ Monitor is a website monitoring project proposed by Datadog.
 It is a client-server application written in Go.
 Two binaries are available: `monitord`, the daemon, and `monitorctl`, the client.
 
-![preview](https://github.com/oxlay/monitor/blob/master/preview.png)
+![preview](https://github.com/anatolebeuzon/monitor/blob/master/preview.png)
 
 # Table of contents
 
@@ -36,7 +36,7 @@ The packages have been tested on **macOS and Linux**.
 ## Install
 
 ```
-go get github.com/oxlay/monitor/cmd/monitord github.com/oxlay/monitor/cmd/monitorctl
+go get github.com/anatolebeuzon/monitor/cmd/monitord github.com/anatolebeuzon/monitor/cmd/monitorctl
 ```
 
 Providing that `$GOPATH/bin` is in your `$PATH`, you should be able to:
@@ -50,8 +50,8 @@ On daemon startup, you may need to wait a few seconds for poll results to be ava
 
 By default, `monitorctl` and `monitord` respectively look for the following config files provided in the repo:
 
-* `$GOPATH/src/github.com/oxlay/monitor/cmd/monitorctl/config.json`
-* `$GOPATH/src/github.com/oxlay/monitor/cmd/monitord/config.json`
+* `$GOPATH/src/github.com/anatolebeuzon/monitor/cmd/monitorctl/config.json`
+* `$GOPATH/src/github.com/anatolebeuzon/monitor/cmd/monitord/config.json`
 
 You can override those defaults and pass any config flag using the `-config` flag:
 
@@ -60,14 +60,14 @@ monitord -config path/to/config-monitord.json &
 monitorctl -config path/to/config-monitorctl.json
 ```
 
-Documentation about the content of config files is available [through GoDoc](https://godoc.org/github.com/oxlay/monitor).
+Documentation about the content of config files is available [through GoDoc](https://godoc.org/github.com/anatolebeuzon/monitor).
 
 ## Testing
 
 To run tests for the alert logic:
 
 ```
-cd $GOPATH/src/github.com/oxlay/monitor/cmd/monitord/daemon
+cd $GOPATH/src/github.com/anatolebeuzon/monitor/cmd/monitord/daemon
 go test
 ```
 
@@ -75,7 +75,7 @@ These tests are written following [table-driven testing](https://github.com/gola
 
 ## Documentation
 
-The project documentation is available [here](https://godoc.org/github.com/oxlay/monitor).
+The project documentation is available [here](https://godoc.org/github.com/anatolebeuzon/monitor).
 
 As an effort to provide easy access to the project's documentation, a choice was made to export all methods, thus making them available through `godoc`.
 I believe it is an acceptable trade-off, as the `client` and `daemon` packages will not be distributed as libraries (the folder structure prevents such use cases), and are only meant to be used through `monitorctl` and `monitord` commands.

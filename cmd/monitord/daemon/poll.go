@@ -15,7 +15,7 @@ import (
 	"net/http/httptrace"
 	"time"
 
-	"github.com/oxlay/monitor/internal/payload"
+	"github.com/anatolebeuzon/monitor/internal/payload"
 )
 
 // SchedulePolls schedules regular polls for the website. It never returns.
